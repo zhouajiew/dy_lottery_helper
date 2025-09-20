@@ -1,7 +1,7 @@
 # dy_lottery_helper
 ## 2025/09/21
 ## 版本2.1.1
-解决了selenium使用switch_to.window方法时会抢夺窗口焦点的问题，但仍保留了键盘监听事件。
+解决了selenium使用switch_to.window方法时会抢夺窗口焦点的问题，但仍保留了键盘监听事件
 
 如果浏览器仍然会抢夺窗口焦点，请尝试重启程序
 
