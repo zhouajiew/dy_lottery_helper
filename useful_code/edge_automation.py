@@ -1,6 +1,8 @@
 # 自动化下的Edge浏览器推荐设置
 import json
 import os
+import threading
+import time
 
 from selenium import webdriver
 from selenium.webdriver.edge.service import Service
@@ -10,6 +12,10 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # 构建相对路径
 relative_path = os.path.join(current_dir)
+
+def keep_alive():
+    while True:
+        time.sleep(1)
 
 # 获取日志
 def get_driver_logs():
@@ -58,3 +64,6 @@ if __name__ == "__main__":
 
     # 打开抖音官网
     driver.get('https://live.douyin.com/categorynew/4_103')
+    
+    t = threading.Thread(target=keep_alive)
+    t.start()
