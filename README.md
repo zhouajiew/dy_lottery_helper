@@ -10,6 +10,16 @@
 ## 程序效果(到目前为止最好的效果):
 <img width="1318" height="952" alt="0_today" src="https://github.com/user-attachments/assets/c8c9d73a-c922-46b9-bb05-f1bca8e19370" />
 
+## 2025/09/26
+## 版本2.3.0
+1.增加了lottery_info记录的内容
+
+2.优化了查找直播间的算法
+
+3.修复了一部分符合条件的福袋没有被正确记录以及参与的bug
+
+4.修复了record3.json文件中一些直播间的room_id没有被正确更新的bug
+
 ## 2025/09/24
 ## 版本2.2.0
 1.优化了查找直播间的算法
