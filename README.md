@@ -10,6 +10,18 @@
 ## 程序效果(到目前为止最好的效果):
 <img width="1318" height="952" alt="0_today" src="https://github.com/user-attachments/assets/c8c9d73a-c922-46b9-bb05-f1bca8e19370" />
 
+## 2025/09/28
+## 版本2.4.0
+1.增加了lottery_info记录的内容
+
+2.优化了记录直播间的逻辑
+
+3.优化了浏览器操作逻辑
+
+4.修复了查找直播间的算法会因接口返回数据异常而停止查找的bug
+
+5.修复了因更新room_id而导致异常关闭左边浏览器第一个标签页的bug
+
 ## 2025/09/26
 ## 版本2.3.0
 1.增加了lottery_info记录的内容
