@@ -1,0 +1,6 @@
+P:Problem
+S:Solution
+--
+P1:fake_useragent库打包后出现No module named 'fake_useragent.data'错误
+S1:使用pyinstaller打包时加上--collect-datas=fake_useragent
+打包代码:pyinstaller -D -c --collect-datas=fake_useragent main.py
