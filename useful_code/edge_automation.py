@@ -38,7 +38,7 @@ if __name__ == "__main__":
     # 无头模式
     # edge_options.add_argument('--headless')
 
-    # 屏蔽inforbar
+    edge_options.add_argument("--disable-blink-features=AutomationControlled")
     edge_options.add_experimental_option('useAutomationExtension', False)
     edge_options.add_experimental_option('excludeSwitches', ['enable-automation', 'enable-logging'])
 
@@ -55,6 +55,10 @@ if __name__ == "__main__":
     # 设置超时时间
     driver.set_page_load_timeout(20)
 
+    driver.execute_cdp_cmd('Network.setUserAgentOverride', {
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
+    })
+    
     # 浏览器执行stealth.min.js文件里的代码以应对多数情况的反反爬
     with open(f"{relative_path}/stealth.min.js") as f:
         js = f.read()
