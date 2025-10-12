@@ -1,3 +1,6 @@
+# 比较旧的反反爬手段
+# 想增强反反爬能力可以自行前往patchright-python(by Kaliiiiiiiiii-Vinyzu)项目:)
+
 # 自动化下的Edge浏览器推荐设置
 import json
 import os
@@ -59,7 +62,7 @@ if __name__ == "__main__":
         "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0"
     })
     
-    # 浏览器执行stealth.min.js文件里的代码以应对多数情况的反反爬
+    # 浏览器执行stealth.min.js文件里的代码以应对多数情况的反爬
     with open(f"{relative_path}/stealth.min.js") as f:
         js = f.read()
     driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
