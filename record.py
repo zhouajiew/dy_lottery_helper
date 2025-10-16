@@ -104,7 +104,6 @@ def get_lottery_info():
                     else:
                         income_detail[0]['今日总收益'] = f'{today_income[0]}'
 
-
                 income_detail[0]['今日中福袋的数量'] = today_bag_num3[0]
                 income_detail[0]['今日中实物福袋的数量'] = today_real_object_num[0]
                 income_detail[0]['今日中过的福袋的总收益'] = f'+{total_bag_num3_value[0]}'
@@ -237,6 +236,3 @@ def read_json_file(file_path):
     with open(file_path, 'r', encoding='utf-8') as temp_f:
         d = json.load(temp_f)
         return d
-
-
-
