@@ -138,7 +138,6 @@ def get_lottery_info():
                 print(Fore.RED + f'创建lottery/{timestamp2}.json文件失败！' + Fore.RESET)
 
 def get_records():
-    # 读取config.json文件
     path = f'{relative_path}/record.json'
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
