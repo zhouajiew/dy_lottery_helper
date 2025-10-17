@@ -2791,7 +2791,7 @@ if __name__ == "__main__":
         print(Fore.YELLOW + f'{tp} 浏览器已被隐藏，按下\'1键\'可再次显示浏览器' + Fore.RESET)
 
         if is_VIP[0] == 1 or is_temporary_VIP[0] == 1:
-            if open_account2_browser[0] == 1:
+            if open_account2_browser[0] == 1 and want_red_packet[0] == 0:
                 user_data_dir3 = f'{relative_path}/user/data/account2'
 
                 edge_options3 = webdriver.EdgeOptions()
@@ -2842,6 +2842,35 @@ if __name__ == "__main__":
                 driver3.switch_to.window(driver3.window_handles[0])
 
                 driver3.get('https://www.douyin.com/jingxuan')
+
+            if open_account2_browser[0] == 1 and want_red_packet[0] == 1:
+                def open_temp_google_chrome():
+                    with sync_playwright() as p:
+                        temp_browser = p.chromium.launch_persistent_context(
+                            user_data_dir=f'{relative_path}/user/playwright_data/account2',
+                            channel="chrome",
+                            headless=False,
+                            no_viewport=True,
+                            # do NOT add custom browser headers or user_agent
+                        )
+
+                        temp_page = temp_browser.new_page()
+
+                        temp_page.goto('https://www.douyin.com/jingxuan')
+
+                        while True:
+                            try:
+                                temp_page.get_by_text('钻石').all()
+                            except Exception as e:
+                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                print(Fore.RED + f'{timestamp} 要切换的账号所在的浏览器已被关闭！' + Fore.RESET)
+
+                                break
+
+                            time.sleep(0.1)
+
+                temp_task = threading.Thread(target=open_temp_google_chrome)
+                temp_task.start()
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(Fore.YELLOW + f'{timestamp} 正在获取关键数据...' + Fore.RESET)
