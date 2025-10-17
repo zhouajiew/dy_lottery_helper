@@ -158,13 +158,11 @@ need_to_receive_notification = False
 # 通知内容
 notification_title = ''
 
-def send_wechat(title):
+def send_wechat(title, content):
     token = pushplus_token[0]  # 后台提供的token
     template = 'html'  # template模板类型有'html'、'txt'，'json'等
 
-    msg = title
-
-    url = f'https://www.pushplus.plus/send?token={token}&title={title}&content={msg}&template={template}'
+    url = f'https://www.pushplus.plus/send?token={token}&title={title}&content={content}&template={template}'
 
     try:
         r = requests.get(url=url)
@@ -860,6 +858,10 @@ async def control_driver2_with_playwright(p, temp_dir):
 
     global already_buy_popularity_ticket
 
+    global need_to_receive_notification
+    global notification_title
+    global notification_detailed_content
+    
     control_driver2_restart_browser = False
     control_driver2_change_account = False
 
@@ -890,7 +892,7 @@ async def control_driver2_with_playwright(p, temp_dir):
             if need_to_receive_notification:
                 need_to_receive_notification = False
 
-                send_wechat(notification_title)
+                send_wechat(notification_title, notification_detailed_content)
 
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 print(Fore.GREEN + f'{timestamp} 已推送中奖通知至微信:D' + Fore.RESET)
@@ -1772,13 +1774,17 @@ def control_driver2():
 
     global save_edge_dir
 
+    global need_to_receive_notification
+    global notification_title
+    global notification_detailed_content
+    
     while True:
         # 消息推送
         if pushplus_token[0] != '':
             if need_to_receive_notification:
                 need_to_receive_notification = False
 
-                send_wechat(notification_title)
+                send_wechat(notification_title, notification_detailed_content)
 
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 print(Fore.GREEN + f'{timestamp} 已推送中奖通知至微信:D' + Fore.RESET)
