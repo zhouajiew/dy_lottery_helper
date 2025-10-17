@@ -134,6 +134,11 @@ have_participated_red_packet = False
 enter_red_packet_live_time = 0
 last_enter_red_packet_live_time = 0
 
+# task_while_staying_in_live_with_playwright
+staying_in_live_task = None
+live_room_changed = False
+staying_in_live_task_record_url = ''
+
 # check_control_driver2_thread检测到了异常
 check_control_driver2_error = False
 
@@ -172,9 +177,59 @@ def send_wechat(title, content):
     # print(r.text)
 
 async def main(temp_dir):
+    global count_from_control_driver2_thread
+    global browser
+
+    global wait_until_draw_end
+    global have_participated_red_packet
+    global working_threads2
+
+    global check_control_driver2_error
+
+    global save_google_chrome_dir
+
     async with async_playwright() as p:
         # run many at the same time
-        await asyncio.gather(control_driver2_with_playwright(p, temp_dir), check_control_driver2_thread_status2())
+
+        control_driver2_task = asyncio.create_task(control_driver2_with_playwright(p, temp_dir))
+
+        last_count = 0
+        t1 = time.time()
+        t2 = t1
+
+        # 检测control_driver2_with_playwright是否出现了异常
+        while True:
+            if pause[0] == 0:
+                # 如果经过了60s后control_driver2的count值未发生变化，说明control_driver2_with_playwright线程出现了异常
+                if t2 - t1 > 60:
+                    timestamp = datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")
+                    print(
+                        Fore.RED + f'{timestamp} control_driver2线程出现异常，重启浏览器中' + Fore.RESET)
+
+                    # check_control_driver2_error = True
+
+                    # 重启浏览器时重置这些变量
+                    wait_until_draw_end = False
+                    have_participated_red_packet = False
+                    working_threads2 = {}
+
+                    await browser.close()
+
+                    break
+
+                if last_count != count_from_control_driver2_thread:
+                    t1 = t2
+                    last_count = count_from_control_driver2_thread
+                else:
+                    t2 = time.time()
+
+            # time.sleep(1)
+            await asyncio.sleep(1)
+
+        control_driver2_task.cancel()
+
+    await main(save_google_chrome_dir)
 
 # 通过键盘事件以隐藏/恢复浏览器的线程
 def check_keyboard_event():
@@ -234,41 +289,6 @@ def check_control_driver2_thread_status1():
                 t2 = time.time()
 
         time.sleep(1)
-
-# Google Chrome浏览器目前需要这个判断
-async def check_control_driver2_thread_status2():
-    global count_from_control_driver2_thread
-    global browser
-
-    global wait_until_draw_end
-    global have_participated_red_packet
-    global working_threads2
-
-    global check_control_driver2_error
-
-    last_count = 0
-    t1 = time.time()
-    t2 = t1
-
-    while True:
-        if pause[0] == 0:
-            # 如果经过了60s后control_driver2的count值未发生变化，说明search线程出现了异常
-            if t2 - t1 > 60:
-                timestamp = datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S")
-                print(
-                    Fore.RED + f'{timestamp} control_driver2线程出现异常，重启浏览器中' + Fore.RESET)
-
-                check_control_driver2_error = True
-
-            if last_count != count_from_control_driver2_thread:
-                t1 = t2
-                last_count = count_from_control_driver2_thread
-            else:
-                t2 = time.time()
-
-        # time.sleep(1)
-        await asyncio.sleep(1)
 
 # 检查search线程运行情况
 def check_search_thread_status():
@@ -861,7 +881,10 @@ async def control_driver2_with_playwright(p, temp_dir):
     global need_to_receive_notification
     global notification_title
     global notification_detailed_content
-    
+
+    global staying_in_live_task
+    global live_room_changed
+
     control_driver2_restart_browser = False
     control_driver2_change_account = False
 
@@ -896,7 +919,7 @@ async def control_driver2_with_playwright(p, temp_dir):
 
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 print(Fore.GREEN + f'{timestamp} 已推送中奖通知至微信:D' + Fore.RESET)
-        
+
         # 去除符合条件的已参与人气红包的直播间
         temp_index_list = []
         current_time = datetime.now().strftime("%H:%M:%S")
@@ -989,8 +1012,10 @@ async def control_driver2_with_playwright(p, temp_dir):
                 print(Fore.YELLOW + f'{timestamp} 实物福袋筛选概率已变更为:{real_object_p}' + Fore.RESET)
 
         if pause[0] == 0:
+            '''
             if check_control_driver2_error:
                 break
+            '''
 
             end_time = time.time()
             temp_time = end_time - start_time
@@ -1151,6 +1176,7 @@ async def control_driver2_with_playwright(p, temp_dir):
                     bag_num1_dic[timestamp2] = 0
                     bag_num3_dic[timestamp2] = 0
                     real_object_num_dic[timestamp2] = 0
+                    popularity_ticket_num_dic[timestamp2] = 0
 
             end_time2 = time.time()
             if end_time2 - start_time2 > 7200:
@@ -1441,6 +1467,21 @@ async def control_driver2_with_playwright(p, temp_dir):
                                     # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
                                     eligible_websites[0]['stay'] = 1
 
+                                    live_room_changed = True
+                                    try:
+                                        staying_in_live_task.cancel()
+
+                                        if staying_in_live_task_record_url in working_threads:
+                                            del working_threads[staying_in_live_task_record_url]
+
+                                        have_participated_red_packet = False
+
+                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        print(Fore.YELLOW + f'{timestamp} 已切换直播间，取消task_while_staying_in_live_with_playwright任务' + Fore.RESET)
+                                    except Exception as e:
+                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        print(Fore.RED + f'{timestamp} 取消task_while_staying_in_live_with_playwright失败！' + Fore.RESET)
+
                                     try:
                                         # driver2.get(eligible_websites[0]['url'])
                                         await page.goto(eligible_websites[0]['url'], timeout=20000)
@@ -1463,6 +1504,23 @@ async def control_driver2_with_playwright(p, temp_dir):
 
                                         # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
                                         eligible_websites[0]['stay'] = 1
+
+                                        live_room_changed = True
+                                        try:
+                                            staying_in_live_task.cancel()
+
+                                            if staying_in_live_task_record_url in working_threads:
+                                                del working_threads[staying_in_live_task_record_url]
+
+                                            have_participated_red_packet = False
+
+                                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                            print(
+                                                Fore.YELLOW + f'{timestamp} 已切换直播间，取消task_while_staying_in_live_with_playwright任务' + Fore.RESET)
+                                        except Exception as e:
+                                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                            print(
+                                                Fore.RED + f'{timestamp} 取消task_while_staying_in_live_with_playwright失败！' + Fore.RESET)
 
                                         try:
                                             # driver2.get(eligible_websites[0]['url'])
@@ -1501,6 +1559,23 @@ async def control_driver2_with_playwright(p, temp_dir):
                                         # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
                                         eligible_websites[0]['stay'] = 1
 
+                                        live_room_changed = True
+                                        try:
+                                            staying_in_live_task.cancel()
+
+                                            if staying_in_live_task_record_url in working_threads:
+                                                del working_threads[staying_in_live_task_record_url]
+
+                                            have_participated_red_packet = False
+
+                                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                            print(
+                                                Fore.YELLOW + f'{timestamp} 已切换直播间，取消task_while_staying_in_live_with_playwright任务' + Fore.RESET)
+                                        except Exception as e:
+                                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                            print(
+                                                Fore.RED + f'{timestamp} 取消task_while_staying_in_live_with_playwright失败！' + Fore.RESET)
+
                                         try:
                                             # driver2.get(eligible_websites[0]['url'])
                                             await page.goto(eligible_websites[0]['url'], timeout=20000)
@@ -1532,6 +1607,23 @@ async def control_driver2_with_playwright(p, temp_dir):
 
                                             # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
                                             eligible_websites[0]['stay'] = 1
+
+                                            live_room_changed = True
+                                            try:
+                                                staying_in_live_task.cancel()
+
+                                                if staying_in_live_task_record_url in working_threads:
+                                                    del working_threads[staying_in_live_task_record_url]
+
+                                                have_participated_red_packet = False
+
+                                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                print(
+                                                    Fore.YELLOW + f'{timestamp} 已切换直播间，取消task_while_staying_in_live_with_playwright任务' + Fore.RESET)
+                                            except Exception as e:
+                                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                print(
+                                                    Fore.RED + f'{timestamp} 取消task_while_staying_in_live_with_playwright失败！' + Fore.RESET)
 
                                             try:
                                                 # driver2.get(eligible_websites[0]['url'])
@@ -1688,18 +1780,6 @@ async def control_driver2_with_playwright(p, temp_dir):
 
         count_from_control_driver2_thread += 1
 
-    if check_control_driver2_error:
-        check_control_driver2_error = False
-
-        # 重启浏览器时重置这些变量
-        wait_until_draw_end = False
-        have_participated_red_packet = False
-        working_threads2 = {}
-
-        await browser.close()
-
-        await main(save_google_chrome_dir)
-
     if control_driver2_change_account:
         timestamp2 = datetime.now().strftime("%Y-%m-%d")
 
@@ -1711,6 +1791,7 @@ async def control_driver2_with_playwright(p, temp_dir):
         bag_num1_dic[timestamp2] = 0
         bag_num3_dic[timestamp2] = 0
         real_object_num_dic[timestamp2] = 0
+        popularity_ticket_num_dic[timestamp2] = 0
 
         # driver2.quit()
         await browser.close()
@@ -2538,6 +2619,7 @@ if __name__ == "__main__":
     bag_num1_dic[timestamp2] = today_bag_num1[0]
     bag_num3_dic[timestamp2] = today_bag_num3[0]
     real_object_num_dic[timestamp2] = today_real_object_num[0]
+    popularity_ticket_num_dic[timestamp2] = today_popularity_ticket_red_packet_num[0]
 
     # 初始化用户信息
     get_user_info()
@@ -2925,6 +3007,35 @@ if __name__ == "__main__":
         get_important_data()
 
         if msToken[0] != '' and a_bogus[0] != '':
+            # 先推送一次
+            notification_title = '今日数据'
+            if bag_num1_dic[timestamp2] != 0:
+                notification_detailed_content = (
+                        f'{time.time()}\n'
+                        + f'今日总收益: %2B{today_income[0]}\n'
+                        + f'今日参与的福袋数: {bag_num1_dic[timestamp2]}\n'
+                        + f'今日中奖率: {bag_num3_dic[timestamp2] / bag_num1_dic[timestamp2]}\n'
+                        + f'今日中福袋的数量: {bag_num3_dic[timestamp2]}\n'
+                        + f'今日中实物福袋的数量: {real_object_num_dic[timestamp2]}\n'
+                        + f'今日中过的福袋的总收益: %2B{total_bag_num3_value[0]}\n'
+                        + f'今日中过的钻石红包的总收益: %2B{total_red_packet_num3_value[0]}\n'
+                        + f'今日参与的人气红包数: {popularity_ticket_num_dic[timestamp2]}\n'
+                        + f'今日中过的礼物红包的总收益: %2B{total_red_packet_gift_num3_value[0]}')
+            else:
+                notification_detailed_content = (
+                        f'{time.time()}\n'
+                        + f'今日总收益: %2B{today_income[0]}\n'
+                        + f'今日参与的福袋数: {bag_num1_dic[timestamp2]}\n'
+                        + f'今日中奖率: 0.00'
+                        + f'今日中福袋的数量: {bag_num3_dic[timestamp2]}\n'
+                        + f'今日中实物福袋的数量: {real_object_num_dic[timestamp2]}\n'
+                        + f'今日中过的福袋的总收益: %2B{total_bag_num3_value[0]}\n'
+                        + f'今日中过的钻石红包的总收益: %2B{total_red_packet_num3_value[0]}\n'
+                        + f'今日参与的人气红包数: {popularity_ticket_num_dic[timestamp2]}\n'
+                        + f'今日中过的礼物红包的总收益: %2B{total_red_packet_gift_num3_value[0]}')
+
+            send_wechat(notification_title, notification_detailed_content)
+
             # 开启无限循环线程保持浏览器处于运行状态
             t = threading.Thread(target=search)
             t.start()
