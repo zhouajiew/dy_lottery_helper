@@ -158,6 +158,21 @@ need_to_receive_notification = False
 # 通知内容
 notification_title = ''
 
+def send_wechat(title):
+    token = pushplus_token[0]  # 后台提供的token
+    template = 'html'  # template模板类型有'html'、'txt'，'json'等
+
+    msg = title
+
+    url = f'https://www.pushplus.plus/send?token={token}&title={title}&content={msg}&template={template}'
+
+    try:
+        r = requests.get(url=url)
+    except Exception as e:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(Fore.RED + f'{timestamp} 消息推送失败！' + Fore.RESET)
+    # print(r.text)
+
 async def main(temp_dir):
     async with async_playwright() as p:
         # run many at the same time
@@ -870,6 +885,16 @@ async def control_driver2_with_playwright(p, temp_dir):
     # await page.pause()
 
     while True:
+        # 消息推送
+        if pushplus_token[0] != '':
+            if need_to_receive_notification:
+                need_to_receive_notification = False
+
+                send_wechat(notification_title)
+
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                print(Fore.GREEN + f'{timestamp} 已推送中奖通知至微信:D' + Fore.RESET)
+        
         # 去除符合条件的已参与人气红包的直播间
         temp_index_list = []
         current_time = datetime.now().strftime("%H:%M:%S")
@@ -1748,6 +1773,16 @@ def control_driver2():
     global save_edge_dir
 
     while True:
+        # 消息推送
+        if pushplus_token[0] != '':
+            if need_to_receive_notification:
+                need_to_receive_notification = False
+
+                send_wechat(notification_title)
+
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                print(Fore.GREEN + f'{timestamp} 已推送中奖通知至微信:D' + Fore.RESET)
+        
         if is_temporary_VIP[0] == 1:
             # 在免费VIP时段，设置临时VIP
             pattern = r'([0-9]+):([0-9]+):([0-9]+)'
