@@ -2488,6 +2488,7 @@ if __name__ == "__main__":
     os.environ['Path'] = os.environ.get('path') + relative_path
 
     # 初始化record中的方法
+    get_pushplus_token()
     get_records()
     get_lottery_info()
     time.sleep(1)
