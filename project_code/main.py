@@ -759,20 +759,24 @@ def close_windows():
 
 async def task_while_staying_in_live_with_playwright(record_url, key_element_type):
   # 隐藏的代码块
+  # 该方法的主要功能是在首次参与福袋/红包后，检查直播间的福袋/红包情况，并检查钻石数量(获取钻石数量失败意味着抖音登录状态失效了)  
 
 def tasks_while_staying_in_live(record_url, key_element_type):
   # 隐藏的代码块
-
+  # 该方法的主要功能是在首次参与福袋后，检查直播间的福袋情况，并检查钻石数量(获取钻石数量失败意味着抖音登录状态失效了) 
+    
 # 参与红包
 async def participate_red_packet(first_time):
   # 隐藏的代码块
   
 async def delay_check_with_playwright(key_element_type):
   # 隐藏的代码块
+  # 该方法在跳转到新直播间后执行，是参与福袋/红包的关键方法 
 
 def delay_check(key_element_type):
   # 隐藏的代码块
-
+  # 该方法在跳转到新直播间后执行，是参与福袋的关键方法 
+    
 # 切换账号
 def change_account(temp_dir):
     global js
