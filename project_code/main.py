@@ -2615,6 +2615,22 @@ if __name__ == "__main__":
     get_lottery_info()
     time.sleep(1)
 
+    # 读取already_buy_popularity_ticket.json
+    p = f'{relative_path}/already_buy_popularity_ticket.json'
+
+    try:
+        if not os.path.exists(p):
+            # 打开文件，以写入模式创建文件对象
+            with open(f'{relative_path}/already_buy_popularity_ticket.json', 'w',
+                      encoding='utf-8') as file:
+                # indent=1 每个层级缩进1个空格
+                file.write(json.dumps([], indent=1, ensure_ascii=False))
+        else:
+            already_buy_popularity_ticket = read_json_file(p)
+    except Exception as e:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(Fore.RED + f'{timestamp} 操作already_buy_popularity_ticket.json时出错！' + Fore.RESET)
+    
     timestamp2 = datetime.now().strftime("%Y-%m-%d")
     bag_num1_dic[timestamp2] = today_bag_num1[0]
     bag_num3_dic[timestamp2] = today_bag_num3[0]
