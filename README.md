@@ -10,8 +10,8 @@
 3.会参与粉丝团福袋，利用付费行为提高了每日可中钻石数量的上限，顺便也能提升你的消费等级
 
 4.程序带有被风控检测，如果检测到可能处于被风控状态，会更加严格地筛选福袋以减少福袋的参与，避免更严重的黑号情况，同时尽可能减少了因参与粉丝团福袋导致的钻石损失的情况
-## 程序效果(到目前为止最好的效果):
-<img width="1318" height="952" alt="0_today" src="https://github.com/user-attachments/assets/c8c9d73a-c922-46b9-bb05-f1bca8e19370" />
+## 程序效果:
+<img width="1304" height="940" alt="0_today(2025-10-15)" src="https://github.com/user-attachments/assets/52d50a96-22c0-48dc-92ed-e2486c2cdfaa" />
 
 ## 2025/10/17
 ## 版本3.2.1
