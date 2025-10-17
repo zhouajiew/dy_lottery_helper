@@ -153,6 +153,11 @@ count_from_control_driver2_thread = 0
 # 本小时已参与过该直播间的人气红包的后续不用再消耗1钻石来参与该直播间的人气红包
 already_buy_popularity_ticket = []
 
+# 中奖了需要进行消息推送
+need_to_receive_notification = False
+# 通知内容
+notification_title = ''
+
 async def main(temp_dir):
     async with async_playwright() as p:
         # run many at the same time
