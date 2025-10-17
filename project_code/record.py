@@ -25,6 +25,25 @@ relative_path = os.path.join(current_dir)
 gift_value_dic = {'小心心':'1钻', '大啤酒':'2钻', '棒棒糖':'9钻', '小皇冠':'10钻', '撩一下':'19钻'}
 gift_value_dic2 = {'小心心':1, '大啤酒':2, '棒棒糖':9, '小皇冠':10, '撩一下':19}
 
+def get_pushplus_token():
+    p = f'{relative_path}/pushplus.json'
+
+    try:
+        if not os.path.exists(p):
+            data = [{'token':''}]
+
+            # 打开文件，以写入模式创建文件对象
+            with open(f'{relative_path}/pushplus.json', 'w', encoding='utf-8') as file:
+                # indent=1 每个层级缩进1个空格
+                file.write(json.dumps(data, indent=1, ensure_ascii=False))
+        else:
+            original_data = read_json_file(p)
+
+            pushplus_token[0] = original_data[0].get('token')
+    except Exception as e:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(Fore.RED + f'{timestamp} 读取pushplus.json文件失败！' + Fore.RESET)
+
 def get_lottery_info():
     global income_detail
 
