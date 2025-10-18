@@ -139,8 +139,8 @@ staying_in_live_task = None
 live_room_changed = False
 staying_in_live_task_record_url = ''
 
-# check_control_driver2_thread检测到了异常
-check_control_driver2_error = False
+control_driver2_change_account = False
+control_driver2_restart_browser = False
 
 start_time2 = time.time()
 end_time2 = start_time2
@@ -184,7 +184,8 @@ async def main(temp_dir):
     global have_participated_red_packet
     global working_threads2
 
-    global check_control_driver2_error
+    global control_driver2_restart_browser
+    global control_driver2_change_account
 
     global save_google_chrome_dir
 
@@ -199,6 +200,14 @@ async def main(temp_dir):
 
         # 检测control_driver2_with_playwright是否出现了异常
         while True:
+            if control_driver2_restart_browser or control_driver2_change_account:
+                if control_driver2_restart_browser:
+                    control_driver2_restart_browser = False
+                if control_driver2_change_account:
+                    control_driver2_change_account = False
+
+                break
+
             if pause[0] == 0:
                 # 如果经过了60s后control_driver2的count值未发生变化，说明control_driver2_with_playwright线程出现了异常
                 if t2 - t1 > 60:
@@ -207,14 +216,18 @@ async def main(temp_dir):
                     print(
                         Fore.RED + f'{timestamp} control_driver2线程出现异常，重启浏览器中' + Fore.RESET)
 
-                    # check_control_driver2_error = True
-
                     # 重启浏览器时重置这些变量
                     wait_until_draw_end = False
                     have_participated_red_packet = False
                     working_threads2 = {}
 
-                    await browser.close()
+                    try:
+                        await browser.close()
+                    except Exception as e:
+                        timestamp = datetime.now().strftime(
+                            "%Y-%m-%d %H:%M:%S")
+                        print(
+                            Fore.RED + f'{timestamp} 关闭浏览器失败！' + Fore.RESET)
 
                     break
 
@@ -227,8 +240,15 @@ async def main(temp_dir):
             # time.sleep(1)
             await asyncio.sleep(1)
 
-        control_driver2_task.cancel()
+        try:
+            control_driver2_task.cancel()
+        except Exception as e:
+            timestamp = datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S")
+            print(
+                Fore.RED + f'{timestamp} 取消control_driver2_task失败！' + Fore.RESET)
 
+    await asyncio.sleep(3)
     await main(save_google_chrome_dir)
 
 # 通过键盘事件以隐藏/恢复浏览器的线程
@@ -878,7 +898,6 @@ async def control_driver2_with_playwright(p, temp_dir):
     global save_google_chrome_dir
 
     global count_from_control_driver2_thread
-    global check_control_driver2_error
 
     global already_buy_popularity_ticket
 
@@ -888,6 +907,9 @@ async def control_driver2_with_playwright(p, temp_dir):
 
     global staying_in_live_task
     global live_room_changed
+
+    global control_driver2_restart_browser
+    global control_driver2_change_account
 
     control_driver2_restart_browser = False
     control_driver2_change_account = False
@@ -1016,11 +1038,6 @@ async def control_driver2_with_playwright(p, temp_dir):
                 print(Fore.YELLOW + f'{timestamp} 实物福袋筛选概率已变更为:{real_object_p}' + Fore.RESET)
 
         if pause[0] == 0:
-            '''
-            if check_control_driver2_error:
-                break
-            '''
-
             end_time = time.time()
             temp_time = end_time - start_time
             temp_time = round(temp_time, 2)
@@ -1816,12 +1833,12 @@ async def control_driver2_with_playwright(p, temp_dir):
         have_participated_red_packet = False
         working_threads2 = {}
 
+        await asyncio.sleep(3)
+
         if current_account_index == 0:
             save_google_chrome_dir = f'{relative_path}/user/playwright_data/dir2'
-            await main(f'{relative_path}/user/playwright_data/dir2')
         if current_account_index == 1:
             save_google_chrome_dir = f'{relative_path}/user/playwright_data/account2'
-            await main(f'{relative_path}/user/playwright_data/account2')
 
     if control_driver2_restart_browser:
         # 重启浏览器时重置这些变量
@@ -1829,9 +1846,12 @@ async def control_driver2_with_playwright(p, temp_dir):
         # have_participated_red_packet = False
         # working_threads2 = {}
 
-        await browser.close()
-
-        await main(save_google_chrome_dir)
+        try:
+            await browser.close()
+        except Exception as e:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print(
+                Fore.RED + f'{timestamp} 关闭浏览器失败！' + Fore.RESET)
 
 def control_driver2():
     global start_time
