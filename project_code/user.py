@@ -4,9 +4,11 @@ import re
 import time
 from datetime import datetime
 
+import pymysql
 from colorama import Fore
 
 from global_v import *
+
 
 # 读取json文件
 def read_json_file(file_path):
@@ -22,7 +24,7 @@ relative_path = os.path.join(current_dir)
 
 # 查看当前版本
 def get_program_version():
-  # 隐藏的代码块
+    # 隐藏的代码块
 
 # 还原成默认配置
 def reset_temporary_vip():
@@ -50,8 +52,8 @@ def reset_temporary_vip():
     open_account2_browser[0] = 0
     need_change_account[0] = 0
     set_change_account_running_time[0] = 999999
-    set_change_account_income[0] = -10
-    set_change_account_today_income[0] = 100
+    set_change_account_today_income[0] = -10
+    set_change_account_today_income2[0] = 100
     set_change_account_bag_num1[0] = 200
     set_change_account_bag_num3[0] = 15
 
@@ -139,10 +141,10 @@ def get_user_info():
 
             pause_automatically[0] = original_data[temp_idx].get('是否启用该功能')
             set_pause_running_time[0] = original_data[temp_idx].get('程序运行时间≥')
-            set_pause_income[0] = original_data[temp_idx].get('本次钻石收益≤')
-            set_pause_today_income[0] = original_data[temp_idx].get('今日钻石收益≥')
-            set_pause_bag_num1[0] = original_data[temp_idx].get('今日参与福袋数≥')
-            set_pause_bag_num3[0] = original_data[temp_idx].get('今日已中福袋数≥')
+            set_pause_today_income[0] = original_data[temp_idx].get('今日单账号钻石收益≤')
+            set_pause_today_income2[0] = original_data[temp_idx].get('今日单账号钻石收益≥')
+            set_pause_bag_num1[0] = original_data[temp_idx].get('今日单账号参与福袋数≥')
+            set_pause_bag_num3[0] = original_data[temp_idx].get('今日单账号已中福袋数≥')
         except Exception as e:
             pass
 
@@ -150,10 +152,10 @@ def get_user_info():
             pause_automatically[0] = 0
         if set_pause_running_time[0] is None:
             set_pause_running_time[0] = 999999
-        if set_pause_income[0] is None:
-            set_pause_income[0] = -10
         if set_pause_today_income[0] is None:
-            set_pause_today_income[0] = 100
+            set_pause_today_income[0] = -10
+        if set_pause_today_income2[0] is None:
+            set_pause_today_income2[0] = 100
         if set_pause_bag_num1[0] is None:
             set_pause_bag_num1[0] = 200
         if set_pause_bag_num3[0] is None:
@@ -226,8 +228,8 @@ def get_user_info():
                     if o.get('功能') == '自定义被风控判断规则':
                         temp_idx = idx
 
-                temp_set_risk_income = original_data[temp_idx].get('本次钻石收益的风控值')
-                temp_set_risk_today_income = original_data[temp_idx].get('今日钻石收益的风控值')
+                temp_set_risk_income = original_data[temp_idx].get('本次钻石收益≤')
+                temp_set_risk_today_income = original_data[temp_idx].get('今日单账号钻石收益≤')
                 temp_set_get_reward_p = original_data[temp_idx].get('预期的抽中福袋的概率')
                 temp_set_raise_fan_club_bag_p = original_data[temp_idx].get('提高的粉丝团福袋的筛选概率')
             except Exception as e:
@@ -251,10 +253,10 @@ def get_user_info():
                 temp_open_account2_browser = original_data[temp_idx].get('启动程序时打开要切换的账号所在的浏览器')
                 temp_need_change_account = original_data[temp_idx].get('本次需要切换账号')
                 temp_set_change_account_running_time = original_data[temp_idx].get('程序运行时间≥')
-                temp_set_change_account_income = original_data[temp_idx].get('本次钻石收益≤')
-                temp_set_change_account_today_income = original_data[temp_idx].get('今日钻石收益≥')
-                temp_set_change_account_bag_num1 = original_data[temp_idx].get('今日参与福袋数≥')
-                temp_set_change_account_bag_num3 = original_data[temp_idx].get('今日已中福袋数≥')
+                temp_set_change_account_income = original_data[temp_idx].get('今日单账号钻石收益≤')
+                temp_set_change_account_today_income = original_data[temp_idx].get('今日单账号钻石收益≥')
+                temp_set_change_account_bag_num1 = original_data[temp_idx].get('今日单账号参与福袋数≥')
+                temp_set_change_account_bag_num3 = original_data[temp_idx].get('今日单账号已中福袋数≥')
             except Exception as e:
                 pass
 
@@ -362,8 +364,8 @@ def get_user_info():
                         if o.get('功能') == '自定义被风控判断规则':
                             temp_idx = idx
 
-                    set_risk_income[0] = original_data[temp_idx].get('本次钻石收益的风控值')
-                    set_risk_today_income[0] = original_data[temp_idx].get('今日钻石收益的风控值')
+                    set_risk_income[0] = original_data[temp_idx].get('本次钻石收益≤')
+                    set_risk_today_income[0] = original_data[temp_idx].get('今日单账号钻石收益≤')
                     set_get_reward_p[0] = original_data[temp_idx].get('预期的抽中福袋的概率')
                     set_raise_fan_club_bag_p[0] = original_data[temp_idx].get('提高的粉丝团福袋的筛选概率')
                 except Exception as e:
@@ -387,10 +389,10 @@ def get_user_info():
                     open_account2_browser[0] = original_data[temp_idx].get('启动程序时打开要切换的账号所在的浏览器')
                     need_change_account[0] = original_data[temp_idx].get('本次需要切换账号')
                     set_change_account_running_time[0] = original_data[temp_idx].get('程序运行时间≥')
-                    set_change_account_income[0] = original_data[temp_idx].get('本次钻石收益≤')
-                    set_change_account_today_income[0] = original_data[temp_idx].get('今日钻石收益≥')
-                    set_change_account_bag_num1[0] = original_data[temp_idx].get('今日参与福袋数≥')
-                    set_change_account_bag_num3[0] = original_data[temp_idx].get('今日已中福袋数≥')
+                    set_change_account_today_income[0] = original_data[temp_idx].get('今日单账号钻石收益≤')
+                    set_change_account_today_income2[0] = original_data[temp_idx].get('今日单账号钻石收益≥')
+                    set_change_account_bag_num1[0] = original_data[temp_idx].get('今日单账号参与福袋数≥')
+                    set_change_account_bag_num3[0] = original_data[temp_idx].get('今日单账号已中福袋数≥')
                 except Exception as e:
                     pass
 
@@ -400,10 +402,10 @@ def get_user_info():
                     need_change_account[0] = 0
                 if set_change_account_running_time[0] is None:
                     set_change_account_running_time[0] = 999999
-                if set_change_account_income[0] is None:
-                    set_change_account_income[0] = -10
                 if set_change_account_today_income[0] is None:
-                    set_change_account_today_income[0] = 100
+                    set_change_account_today_income[0] = -10
+                if set_change_account_today_income2[0] is None:
+                    set_change_account_today_income2[0] = 100
                 if set_change_account_bag_num1[0] is None:
                     set_change_account_bag_num1[0] = 200
                 if set_change_account_bag_num3[0] is None:
@@ -443,10 +445,10 @@ def get_user_info():
                     '限制': '无限制',
                     '是否启用该功能': pause_automatically[0],
                     '程序运行时间≥': set_pause_running_time[0],
-                    '本次钻石收益≤': set_pause_income[0],
-                    '今日钻石收益≥': set_pause_today_income[0],
-                    '今日参与福袋数≥': set_pause_bag_num1[0],
-                    '今日已中福袋数≥': set_pause_bag_num3[0]
+                    '今日单账号钻石收益≤': set_pause_today_income[0],
+                    '今日单账号钻石收益≥': set_pause_today_income2[0],
+                    '今日单账号参与福袋数≥': set_pause_bag_num1[0],
+                    '今日单账号已中福袋数≥': set_pause_bag_num3[0]
                 },
                 {
                     '功能': '设置福袋筛选概率',
@@ -471,8 +473,8 @@ def get_user_info():
                 {
                     '功能': '自定义被风控判断规则',
                     '限制': '仅VIP用户可用',
-                    '本次钻石收益的风控值': set_risk_income[0],
-                    '今日钻石收益的风控值': set_risk_today_income[0],
+                    '本次钻石收益≤': set_risk_income[0],
+                    '今日单账号钻石收益≤': set_risk_today_income[0],
                     '预期的抽中福袋的概率': set_get_reward_p[0],
                     '提高的粉丝团福袋的筛选概率': set_raise_fan_club_bag_p[0]
                 },
@@ -482,10 +484,10 @@ def get_user_info():
                     '启动程序时打开要切换的账号所在的浏览器': open_account2_browser[0],
                     '本次需要切换账号': need_change_account[0],
                     '程序运行时间≥': set_change_account_running_time[0],
-                    '本次钻石收益≤': set_change_account_income[0],
-                    '今日钻石收益≥': set_change_account_today_income[0],
-                    '今日参与福袋数≥': set_change_account_bag_num1[0],
-                    '今日已中福袋数≥': set_change_account_bag_num3[0]
+                    '今日单账号钻石收益≤': set_change_account_today_income[0],
+                    '今日单账号钻石收益≥': set_change_account_today_income2[0],
+                    '今日单账号参与福袋数≥': set_change_account_bag_num1[0],
+                    '今日单账号已中福袋数≥': set_change_account_bag_num3[0]
                 },
                 {
                     '功能': '自动抢红包',
@@ -504,7 +506,6 @@ def get_user_info():
             print(Fore.GREEN + f'{timestamp} user.json文件格式已更新到最新版:D' + Fore.RESET)
 
             return original_data
-          
         if is_VIP[0] == 0 and is_temporary_VIP[0] == 0:
             data = [{
                 'username': username,
@@ -515,10 +516,10 @@ def get_user_info():
                     '限制': '无限制',
                     '是否启用该功能': pause_automatically[0],
                     '程序运行时间≥': set_pause_running_time[0],
-                    '本次钻石收益≤': set_pause_income[0],
-                    '今日钻石收益≥': set_pause_today_income[0],
-                    '今日参与福袋数≥': set_pause_bag_num1[0],
-                    '今日已中福袋数≥': set_pause_bag_num3[0]
+                    '今日单账号钻石收益≤': set_pause_today_income[0],
+                    '今日单账号钻石收益≥': set_pause_today_income2[0],
+                    '今日单账号参与福袋数≥': set_pause_bag_num1[0],
+                    '今日单账号已中福袋数≥': set_pause_bag_num3[0]
                 },
                 {
                     '功能': '设置福袋筛选概率',
@@ -543,8 +544,8 @@ def get_user_info():
                 {
                     '功能': '自定义被风控判断规则',
                     '限制': '仅VIP用户可用',
-                    '本次钻石收益的风控值': temp_set_risk_income,
-                    '今日钻石收益的风控值': temp_set_risk_today_income,
+                    '本次钻石收益≤': temp_set_risk_income,
+                    '今日单账号钻石收益≤': temp_set_risk_today_income,
                     '预期的抽中福袋的概率': temp_set_get_reward_p,
                     '提高的粉丝团福袋的筛选概率': temp_set_raise_fan_club_bag_p
                 },
@@ -554,10 +555,10 @@ def get_user_info():
                     '启动程序时打开要切换的账号所在的浏览器': temp_open_account2_browser,
                     '本次需要切换账号': temp_need_change_account,
                     '程序运行时间≥': temp_set_change_account_running_time,
-                    '本次钻石收益≤': temp_set_change_account_income,
-                    '今日钻石收益≥': temp_set_change_account_today_income,
-                    '今日参与福袋数≥': temp_set_change_account_bag_num1,
-                    '今日已中福袋数≥': temp_set_change_account_bag_num3
+                    '今日单账号钻石收益≤': temp_set_change_account_income,
+                    '今日单账号钻石收益≥': temp_set_change_account_today_income,
+                    '今日单账号参与福袋数≥': temp_set_change_account_bag_num1,
+                    '今日单账号已中福袋数≥': temp_set_change_account_bag_num3
                 },
                 {
                     '功能': '自动抢红包',
@@ -588,10 +589,10 @@ def get_user_info():
                  '限制': '无限制',
                  '是否启用该功能': 0,
                  '程序运行时间≥': 999999,
-                 '本次钻石收益≤': -10,
-                 '今日钻石收益≥': 100,
-                 '今日参与福袋数≥': 200,
-                 '今日已中福袋数≥': 15
+                 '今日单账号钻石收益≤': -10,
+                 '今日单账号钻石收益≥': 100,
+                 '今日单账号参与福袋数≥': 200,
+                 '今日单账号已中福袋数≥': 15
                 },
                 {
                  '功能': '设置福袋筛选概率',
@@ -616,8 +617,8 @@ def get_user_info():
                 {
                  '功能': '自定义被风控判断规则',
                  '限制': '仅VIP用户可用',
-                 '本次钻石收益的风控值': -5,
-                 '今日钻石收益的风控值': -5,
+                 '本次钻石收益≤': -5,
+                 '今日单账号钻石收益≤': -5,
                  '预期的抽中福袋的概率': 0.1,
                  '提高的粉丝团福袋的筛选概率': 0.1
                 },
@@ -627,10 +628,10 @@ def get_user_info():
                  '启动程序时打开要切换的账号所在的浏览器': 0,
                  '本次需要切换账号': 0,
                  '程序运行时间≥': 999999,
-                 '本次钻石收益≤': -10,
-                 '今日钻石收益≥': 100,
-                 '今日参与福袋数≥': 200,
-                 '今日已中福袋数≥': 15
+                 '今日单账号钻石收益≤': -10,
+                 '今日单账号钻石收益≥': 100,
+                 '今日单账号参与福袋数≥': 200,
+                 '今日单账号已中福袋数≥': 15
                 },
                 {
                  '功能': '自动抢红包',
@@ -647,5 +648,5 @@ def get_user_info():
         with open(f'{relative_path}/user.json', 'w', encoding='utf-8') as file:
             # indent=1 每个层级缩进1个空格
             file.write(json.dumps(data, indent=1, ensure_ascii=False))
-          
+
 # 隐藏的代码块
