@@ -14,7 +14,7 @@
 <img width="1304" height="940" alt="0_today(2025-10-15)" src="https://github.com/user-attachments/assets/52d50a96-22c0-48dc-92ed-e2486c2cdfaa" />
 
 ## 2025/10/18
-## 版本3.2.2(预告版本)
+## 版本3.2.2
 1.增加了消息推送功能，你可以在程序运行后自动创建的pushplus.json文件里填写pushplus的token，这样中奖时就会自动推送中奖通知到你的微信了
 
 **你可以点击消息通知的’查看详情’查看今日lottery_info的关键数据**
