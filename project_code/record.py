@@ -154,7 +154,8 @@ def get_lottery_info():
                     temp_f.write(json.dumps([{'今日总收益':'+0', '今日参与的福袋数': 0, '今日中奖率': 0, '今日中福袋的数量': 0, '今日中过的福袋的总收益' : '+0', '今日中过的钻石红包的总收益' : '+0'}], indent=1, ensure_ascii=False))
 
             except Exception as e:
-                print(Fore.RED + f'创建lottery/{timestamp2}.json文件失败！' + Fore.RESET)
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                print(Fore.RED + f'{timestamp} 创建lottery/{timestamp2}.json文件失败！' + Fore.RESET)
 
 def get_records():
     path = f'{relative_path}/record.json'
