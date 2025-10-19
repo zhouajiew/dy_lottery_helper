@@ -20,6 +20,12 @@
 ## 程序效果(双账号):
 <img width="1304" height="940" alt="0_today(2025-10-18)" src="https://github.com/user-attachments/assets/9013a576-796b-4fc6-90c8-b0a33faafe78" />
 
+## 2025/10/20
+## 版本3.3.1
+1.修复了最近版本在程序运行到新的一天时无法创建最新的lottery_info文件的bug
+
+2.修改了一些逻辑不合理的地方
+
 ## 2025/10/19
 ## 版本3.3.0
 1.新增了lottery_info记录的内容，现在每条记录会标注上’account:账号0’或者’account:账号1’，这取决于你是否切换了账号
