@@ -1,6 +1,8 @@
 # dy_lottery_helper
-## 项目交流微信群
-![微信群](https://github.com/user-attachments/assets/560bdb08-5597-40c4-a4a7-cf3daacf54fd)
+## 项目交流群
+微信群无了，换QQ群
+
+群号:927058243
 
 ## 程序特色:
 1.采用多种方式查找合适的直播间，不依赖于解密算法避免了需要频繁更新算法的问题
