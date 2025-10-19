@@ -4,6 +4,9 @@ import re
 import time
 import math
 import threading
+
+import ctypes
+
 from asyncio import timeout
 
 import requests
@@ -64,6 +67,9 @@ max_live_num_count = 0
 # 当前要处理的直播间序号
 live_index = 0
 
+# 临时今日收益
+temp_today_income = 0
+
 # 初始钻石数量
 initial_diamond = 0
 # 后续记录的钻石数量
@@ -80,6 +86,8 @@ bag_num3 = 0
 bag_num3_dic = {}
 # 实物福袋的中奖数
 real_object_num_dic = {}
+# 今日参与的人气红包数
+popularity_ticket_num_dic = {}
 
 # 风控判断
 bad_luck = False
@@ -144,6 +152,9 @@ control_driver2_restart_browser = False
 
 start_time2 = time.time()
 end_time2 = start_time2
+temp_bag_num1_dic = {}
+temp_bag_num3_dic = {}
+
 # 要重启的浏览器保存文件目录
 save_edge_dir = ''
 save_google_chrome_dir = ''
@@ -162,6 +173,7 @@ already_buy_popularity_ticket = []
 need_to_receive_notification = False
 # 通知内容
 notification_title = ''
+notification_detailed_content = ''
 
 def send_wechat(title, content):
     token = pushplus_token[0]  # 后台提供的token
@@ -889,6 +901,16 @@ async def control_driver2_with_playwright(p, temp_dir):
     global base_real_object_p
     global working_threads2
 
+    global temp_today_income
+
+    global bag_num1
+    global bag_num1_dic
+    global temp_bag_num1_dic
+    global bag_num2
+    global bag_num3
+    global bag_num3_dic
+    global temp_bag_num3_dic
+
     global have_participated_red_packet
     global enter_red_packet_live_time
     global last_enter_red_packet_live_time
@@ -1073,8 +1095,8 @@ async def control_driver2_with_playwright(p, temp_dir):
             if bad_luck:
                 # 可能被风控的几种情况
                 at_risk = False
-                # 本次钻石收益 <= set_risk_income[0] or 今日钻石收益 <= set_risk_today_income[0]
-                if income <= income <= set_risk_income[0] or today_income[0] <= set_risk_today_income[0]:
+                # 本次钻石收益 <= set_risk_income[0] or 今日单账号钻石收益 <= set_risk_today_income[0]
+                if income <= set_risk_income[0] or temp_today_income <= set_risk_today_income[0]:
                     at_risk = True
                 # 中奖福袋数为0的情况下，未中奖福袋数 > 1 / set_get_reward_p[0]
                 if bag_num3 == 0 and bag_num2 > 1 / set_get_reward_p[0]:
@@ -1103,8 +1125,8 @@ async def control_driver2_with_playwright(p, temp_dir):
             if not bad_luck:
                 # 可能被风控的几种情况
                 at_risk = False
-                # 本次钻石收益 <= set_risk_income[0] or 今日钻石收益 <= set_risk_today_income[0]
-                if income <= income <= set_risk_income[0] or today_income[0] <= set_risk_today_income[0]:
+                # 本次钻石收益 <= set_risk_income[0] or 今日单账号钻石收益 <= set_risk_today_income[0]
+                if income <= income <= set_risk_income[0] or temp_today_income <= set_risk_today_income[0]:
                     at_risk = True
                 # 中奖福袋数为0的情况下，未中奖福袋数 > 1 / set_get_reward_p[0]
                 if bag_num3 == 0 and bag_num2 > 1 / set_get_reward_p[0]:
@@ -1155,36 +1177,36 @@ async def control_driver2_with_playwright(p, temp_dir):
                     print(
                         Fore.YELLOW + f'{timestamp} 程序运行时间{temp_time}s≥指定值{set_pause_running_time[0]}s，自动暂停程序' + Fore.RESET)
 
-                if income <= set_pause_income[0]:
+                if temp_today_income <= set_pause_today_income[0]:
                     right_condition = True
 
                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     print(
-                        Fore.YELLOW + f'{timestamp} 本次钻石收益{income}≤指定值{set_pause_income[0]}，自动暂停程序' + Fore.RESET)
+                        Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≤指定值{set_pause_today_income[0]}，自动暂停程序' + Fore.RESET)
 
-                if today_income[0] >= set_pause_today_income[0]:
+                if temp_today_income >= set_pause_today_income2[0]:
                     right_condition = True
 
                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     print(
-                        Fore.YELLOW + f'{timestamp} 今日钻石收益{today_income[0]}≥指定值{set_pause_today_income[0]}，自动暂停程序' + Fore.RESET)
+                        Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≥指定值{set_pause_today_income2[0]}，自动暂停程序' + Fore.RESET)
 
                 timestamp2 = datetime.now().strftime("%Y-%m-%d")
-                if bag_num1_dic.get(timestamp2):
-                    if bag_num1_dic[timestamp2] >= set_pause_bag_num1[0]:
+                if temp_bag_num1_dic.get(timestamp2):
+                    if temp_bag_num1_dic[timestamp2] >= set_pause_bag_num1[0]:
                         right_condition = True
 
                         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         print(
-                            Fore.YELLOW + f'{timestamp} 今日参与福袋数{bag_num1_dic[timestamp2]}≥指定值{set_pause_bag_num1[0]}，自动暂停程序' + Fore.RESET)
+                            Fore.YELLOW + f'{timestamp} 今日参与福袋数{temp_bag_num1_dic[timestamp2]}≥指定值{set_pause_bag_num1[0]}，自动暂停程序' + Fore.RESET)
 
-                if bag_num3_dic.get(timestamp2):
-                    if bag_num3_dic[timestamp2] >= set_pause_bag_num3[0]:
+                if temp_bag_num3_dic.get(timestamp2):
+                    if temp_bag_num3_dic[timestamp2] >= set_pause_bag_num3[0]:
                         right_condition = True
 
                         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         print(
-                            Fore.YELLOW + f'{timestamp} 今日已中福袋数{bag_num3_dic[timestamp2]}≥指定值{set_pause_bag_num3[0]}，自动暂停程序' + Fore.RESET)
+                            Fore.YELLOW + f'{timestamp} 今日已中福袋数{temp_bag_num3_dic[timestamp2]}≥指定值{set_pause_bag_num3[0]}，自动暂停程序' + Fore.RESET)
 
                 if right_condition:
                     pause[0] = 1
@@ -1193,11 +1215,14 @@ async def control_driver2_with_playwright(p, temp_dir):
                     start_time = time.time()
                     initial_diamond = 0
                     final_diamond = 0
-                    today_income[0] = 0
-                    bag_num1_dic[timestamp2] = 0
-                    bag_num3_dic[timestamp2] = 0
-                    real_object_num_dic[timestamp2] = 0
-                    popularity_ticket_num_dic[timestamp2] = 0
+                    # today_income[0] = 0
+                    temp_today_income = 0
+                    # bag_num1_dic[timestamp2] = 0
+                    temp_bag_num1_dic[timestamp2] = 0
+                    # bag_num3_dic[timestamp2] = 0
+                    temp_bag_num3_dic[timestamp2] = 0
+                    # real_object_num_dic[timestamp2] = 0
+                    # popularity_ticket_num_dic[timestamp2] = 0
 
             end_time2 = time.time()
             if end_time2 - start_time2 > 7200:
@@ -1224,36 +1249,36 @@ async def control_driver2_with_playwright(p, temp_dir):
                         print(
                             Fore.YELLOW + f'{timestamp} 程序运行时间{temp_time}s≥指定值{set_change_account_running_time[0]}s，切换账号' + Fore.RESET)
 
-                    if income <= set_change_account_income[0]:
+                    if temp_today_income <= set_change_account_today_income[0]:
                         right_condition = True
 
                         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         print(
-                            Fore.YELLOW + f'{timestamp} 本次钻石收益{income}≤指定值{set_change_account_income[0]}，切换账号' + Fore.RESET)
+                            Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≤指定值{set_change_account_today_income[0]}，切换账号' + Fore.RESET)
 
-                    if today_income[0] >= set_change_account_today_income[0]:
+                    if temp_today_income >= set_change_account_today_income2[0]:
                         right_condition = True
 
                         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         print(
-                            Fore.YELLOW + f'{timestamp} 今日钻石收益{today_income[0]}≥指定值{set_change_account_today_income[0]}，切换账号' + Fore.RESET)
+                            Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≥指定值{set_change_account_today_income2[0]}，切换账号' + Fore.RESET)
 
                     timestamp2 = datetime.now().strftime("%Y-%m-%d")
-                    if bag_num1_dic.get(timestamp2):
-                        if bag_num1_dic[timestamp2] >= set_change_account_bag_num1[0]:
+                    if temp_bag_num1_dic.get(timestamp2):
+                        if temp_bag_num1_dic[timestamp2] >= set_change_account_bag_num1[0]:
                             right_condition = True
 
                             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             print(
-                                Fore.YELLOW + f'{timestamp} 今日参与福袋数{bag_num1_dic[timestamp2]}≥指定值{set_change_account_bag_num1[0]}，切换账号' + Fore.RESET)
+                                Fore.YELLOW + f'{timestamp} 本次参与福袋数{temp_bag_num1_dic[timestamp2]}≥指定值{set_change_account_bag_num1[0]}，切换账号' + Fore.RESET)
 
-                    if bag_num3_dic.get(timestamp2):
-                        if bag_num3_dic[timestamp2] >= set_change_account_bag_num3[0]:
+                    if temp_bag_num3_dic.get(timestamp2):
+                        if temp_bag_num3_dic[timestamp2] >= set_change_account_bag_num3[0]:
                             right_condition = True
 
                             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             print(
-                                Fore.YELLOW + f'{timestamp} 今日已中福袋数{bag_num3_dic[timestamp2]}≥指定值{set_change_account_bag_num3[0]}，切换账号' + Fore.RESET)
+                                Fore.YELLOW + f'{timestamp} 本次已中福袋数{temp_bag_num3_dic[timestamp2]}≥指定值{set_change_account_bag_num3[0]}，切换账号' + Fore.RESET)
 
                     # 启动程序时不打开要切换的账号所在的浏览器时才切换
                     if right_condition and open_account2_browser[0] == 0:
@@ -1808,14 +1833,14 @@ async def control_driver2_with_playwright(p, temp_dir):
         start_time = time.time()
         initial_diamond = 0
         final_diamond = 0
-        today_income[0] = 0
-        bag_num1_dic[timestamp2] = 0
-        bag_num3_dic[timestamp2] = 0
-        real_object_num_dic[timestamp2] = 0
-        popularity_ticket_num_dic[timestamp2] = 0
-
-        # driver2.quit()
-        await browser.close()
+        # today_income[0] = 0
+        temp_today_income = 0
+        # bag_num1_dic[timestamp2] = 0
+        temp_bag_num1_dic[timestamp2] = 0
+        # bag_num3_dic[timestamp2] = 0
+        temp_bag_num3_dic[timestamp2] = 0
+        # real_object_num_dic[timestamp2] = 0
+        # popularity_ticket_num_dic[timestamp2] = 0
 
         current_account_index += 1
         if current_account_index > 1:
@@ -1833,12 +1858,13 @@ async def control_driver2_with_playwright(p, temp_dir):
         have_participated_red_packet = False
         working_threads2 = {}
 
-        await asyncio.sleep(3)
-
         if current_account_index == 0:
             save_google_chrome_dir = f'{relative_path}/user/playwright_data/dir2'
         if current_account_index == 1:
             save_google_chrome_dir = f'{relative_path}/user/playwright_data/account2'
+
+        # driver2.quit()
+        await browser.close()
 
     if control_driver2_restart_browser:
         # 重启浏览器时重置这些变量
@@ -1877,12 +1903,22 @@ def control_driver2():
     global base_real_object_p
     global working_threads2
 
+    global temp_today_income
+
+    global bag_num1
+    global bag_num1_dic
+    global temp_bag_num1_dic
+    global bag_num2
+    global bag_num3
+    global bag_num3_dic
+    global temp_bag_num3_dic
+
     global save_edge_dir
 
     global need_to_receive_notification
     global notification_title
     global notification_detailed_content
-    
+
     while True:
         # 消息推送
         if pushplus_token[0] != '':
@@ -1893,7 +1929,7 @@ def control_driver2():
 
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 print(Fore.GREEN + f'{timestamp} 已推送中奖通知至微信:D' + Fore.RESET)
-        
+
         if is_temporary_VIP[0] == 1:
             # 在免费VIP时段，设置临时VIP
             pattern = r'([0-9]+):([0-9]+):([0-9]+)'
@@ -1987,8 +2023,8 @@ def control_driver2():
             if bad_luck:
                 # 可能被风控的几种情况
                 at_risk = False
-                # 本次钻石收益 <= set_risk_income[0] or 今日钻石收益 <= set_risk_today_income[0]
-                if income <= income <= set_risk_income[0] or today_income[0] <= set_risk_today_income[0]:
+                # 本次钻石收益 <= set_risk_income[0] or 今日单账号钻石收益 <= set_risk_today_income[0]
+                if income <= set_risk_income[0] or temp_today_income <= set_risk_today_income[0]:
                     at_risk = True
                 # 中奖福袋数为0的情况下，未中奖福袋数 > 1 / set_get_reward_p[0]
                 if bag_num3 == 0 and bag_num2 > 1 / set_get_reward_p[0]:
@@ -2015,8 +2051,8 @@ def control_driver2():
             if not bad_luck:
                 # 可能被风控的几种情况
                 at_risk = False
-                # 本次钻石收益 <= set_risk_income[0] or 今日钻石收益 <= set_risk_today_income[0]
-                if income <= income <= set_risk_income[0] or today_income[0] <= set_risk_today_income[0]:
+                # 本次钻石收益 <= set_risk_income[0] or 今日单账号钻石收益 <= set_risk_today_income[0]
+                if income <= income <= set_risk_income[0] or temp_today_income <= set_risk_today_income[0]:
                     at_risk = True
                 # 中奖福袋数为0的情况下，未中奖福袋数 > 1 / set_get_reward_p[0]
                 if bag_num3 == 0 and bag_num2 > 1 / set_get_reward_p[0]:
@@ -2065,36 +2101,36 @@ def control_driver2():
                     print(
                         Fore.YELLOW + f'{timestamp} 程序运行时间{temp_time}s≥指定值{set_pause_running_time[0]}s，自动暂停程序' + Fore.RESET)
 
-                if income <= set_pause_income[0]:
+                if temp_today_income <= set_pause_today_income[0]:
                     right_condition = True
 
                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     print(
-                        Fore.YELLOW + f'{timestamp} 本次钻石收益{income}≤指定值{set_pause_income[0]}，自动暂停程序' + Fore.RESET)
+                        Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≤指定值{set_pause_today_income[0]}，自动暂停程序' + Fore.RESET)
 
-                if today_income[0] >= set_pause_today_income[0]:
+                if temp_today_income >= set_pause_today_income2[0]:
                     right_condition = True
 
                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     print(
-                        Fore.YELLOW + f'{timestamp} 今日钻石收益{today_income[0]}≥指定值{set_pause_today_income[0]}，自动暂停程序' + Fore.RESET)
+                        Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≥指定值{set_pause_today_income2[0]}，自动暂停程序' + Fore.RESET)
 
                 timestamp2 = datetime.now().strftime("%Y-%m-%d")
-                if bag_num1_dic.get(timestamp2):
-                    if bag_num1_dic[timestamp2] >= set_pause_bag_num1[0]:
+                if temp_bag_num1_dic.get(timestamp2):
+                    if temp_bag_num1_dic[timestamp2] >= set_pause_bag_num1[0]:
                         right_condition = True
 
                         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         print(
-                            Fore.YELLOW + f'{timestamp} 今日参与福袋数{bag_num1_dic[timestamp2]}≥指定值{set_pause_bag_num1[0]}，自动暂停程序' + Fore.RESET)
+                            Fore.YELLOW + f'{timestamp} 本次参与福袋数{temp_bag_num1_dic[timestamp2]}≥指定值{set_pause_bag_num1[0]}，自动暂停程序' + Fore.RESET)
 
-                if bag_num3_dic.get(timestamp2):
-                    if bag_num3_dic[timestamp2] >= set_pause_bag_num3[0]:
+                if temp_bag_num3_dic.get(timestamp2):
+                    if temp_bag_num3_dic[timestamp2] >= set_pause_bag_num3[0]:
                         right_condition = True
 
                         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         print(
-                            Fore.YELLOW + f'{timestamp} 今日已中福袋数{bag_num3_dic[timestamp2]}≥指定值{set_pause_bag_num3[0]}，自动暂停程序' + Fore.RESET)
+                            Fore.YELLOW + f'{timestamp} 本次已中福袋数{temp_bag_num3_dic[timestamp2]}≥指定值{set_pause_bag_num3[0]}，自动暂停程序' + Fore.RESET)
 
                 if right_condition:
                     pause[0] = 1
@@ -2103,10 +2139,14 @@ def control_driver2():
                     start_time = time.time()
                     initial_diamond = 0
                     final_diamond = 0
-                    today_income[0] = 0
-                    bag_num1_dic[timestamp2] = 0
-                    bag_num3_dic[timestamp2] = 0
-                    real_object_num_dic[timestamp2] = 0
+                    # today_income[0] = 0
+                    temp_today_income = 0
+                    # bag_num1_dic[timestamp2] = 0
+                    temp_bag_num1_dic[timestamp2] = 0
+                    # bag_num3_dic[timestamp2] = 0
+                    temp_bag_num3_dic[timestamp2] = 0
+                    # real_object_num_dic[timestamp2] = 0
+                    # popularity_ticket_num_dic[timestamp2] = 0
 
             # 满足条件时切换账号
             if is_VIP[0] == 1 or is_temporary_VIP[0] == 1:
@@ -2119,36 +2159,36 @@ def control_driver2():
                         print(
                             Fore.YELLOW + f'{timestamp} 程序运行时间{temp_time}s≥指定值{set_change_account_running_time[0]}s，切换账号' + Fore.RESET)
 
-                    if income <= set_change_account_income[0]:
+                    if temp_today_income <= set_change_account_today_income[0]:
                         right_condition = True
 
                         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         print(
-                            Fore.YELLOW + f'{timestamp} 本次钻石收益{income}≤指定值{set_change_account_income[0]}，切换账号' + Fore.RESET)
+                            Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≤指定值{set_change_account_today_income[0]}，切换账号' + Fore.RESET)
 
-                    if today_income[0] >= set_change_account_today_income[0]:
+                    if temp_today_income >= set_change_account_today_income2[0]:
                         right_condition = True
 
                         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         print(
-                            Fore.YELLOW + f'{timestamp} 今日钻石收益{today_income[0]}≥指定值{set_change_account_today_income[0]}，切换账号' + Fore.RESET)
+                            Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≥指定值{set_change_account_today_income2[0]}，切换账号' + Fore.RESET)
 
                     timestamp2 = datetime.now().strftime("%Y-%m-%d")
-                    if bag_num1_dic.get(timestamp2):
-                        if bag_num1_dic[timestamp2] >= set_change_account_bag_num1[0]:
+                    if temp_bag_num1_dic.get(timestamp2):
+                        if temp_bag_num1_dic[timestamp2] >= set_change_account_bag_num1[0]:
                             right_condition = True
 
                             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             print(
-                                Fore.YELLOW + f'{timestamp} 今日参与福袋数{bag_num1_dic[timestamp2]}≥指定值{set_change_account_bag_num1[0]}，切换账号' + Fore.RESET)
+                                Fore.YELLOW + f'{timestamp} 本次参与福袋数{temp_bag_num1_dic[timestamp2]}≥指定值{set_change_account_bag_num1[0]}，切换账号' + Fore.RESET)
 
-                    if bag_num3_dic.get(timestamp2):
-                        if bag_num3_dic[timestamp2] >= set_change_account_bag_num3[0]:
+                    if temp_bag_num3_dic.get(timestamp2):
+                        if temp_bag_num3_dic[timestamp2] >= set_change_account_bag_num3[0]:
                             right_condition = True
 
                             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             print(
-                                Fore.YELLOW + f'{timestamp} 今日已中福袋数{bag_num3_dic[timestamp2]}≥指定值{set_change_account_bag_num3[0]}，切换账号' + Fore.RESET)
+                                Fore.YELLOW + f'{timestamp} 本次已中福袋数{temp_bag_num3_dic[timestamp2]}≥指定值{set_change_account_bag_num3[0]}，切换账号' + Fore.RESET)
 
                     # 启动程序时不打开要切换的账号所在的浏览器时才切换
                     if right_condition and open_account2_browser[0] == 0:
@@ -2156,10 +2196,14 @@ def control_driver2():
                         start_time = time.time()
                         initial_diamond = 0
                         final_diamond = 0
-                        today_income[0] = 0
-                        bag_num1_dic[timestamp2] = 0
-                        bag_num3_dic[timestamp2] = 0
-                        real_object_num_dic[timestamp2] = 0
+                        # today_income[0] = 0
+                        temp_today_income = 0
+                        # bag_num1_dic[timestamp2] = 0
+                        temp_bag_num1_dic[timestamp2] = 0
+                        # bag_num3_dic[timestamp2] = 0
+                        temp_bag_num3_dic[timestamp2] = 0
+                        # real_object_num_dic[timestamp2] = 0
+                        # popularity_ticket_num_dic[timestamp2] = 0
 
                         driver2.quit()
 
@@ -2527,7 +2571,7 @@ def control_driver2():
                                 Fore.RED + f'{timestamp} 开启delay_check线程失败！' + Fore.RESET)
 
         time.sleep(random.uniform(5, 10))
-
+    
 def search():
   # 隐藏的代码块
 
@@ -2624,6 +2668,11 @@ def restart_driver():
                 pass
 
 if __name__ == "__main__":
+    # 关键！！设置LockSetForegroundWindow的值为1使其它程序无法调用SetForegroundWindow方法
+    # 这样做是为了防止Selenium频繁将浏览器窗口放在最前面以及占用窗口焦点
+    # 禁用了SetForegroundWindow方法也不会对Selenium产生影响，因为这和在PyCharm里运行的效果是一样的
+    ctypes.windll.user32.LockSetForegroundWindow(1)
+
     # 初始化colorama
     init()
 
@@ -2654,15 +2703,33 @@ if __name__ == "__main__":
     except Exception as e:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(Fore.RED + f'{timestamp} 操作already_buy_popularity_ticket.json时出错！' + Fore.RESET)
-    
+
     timestamp2 = datetime.now().strftime("%Y-%m-%d")
     bag_num1_dic[timestamp2] = today_bag_num1[0]
+    temp_bag_num1_dic[timestamp2] = today_bag_num1[0]
     bag_num3_dic[timestamp2] = today_bag_num3[0]
+    temp_bag_num3_dic[timestamp2] = today_bag_num3[0]
     real_object_num_dic[timestamp2] = today_real_object_num[0]
     popularity_ticket_num_dic[timestamp2] = today_popularity_ticket_red_packet_num[0]
 
     # 初始化用户信息
     get_user_info()
+
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    if pause_automatically[0] == 1:
+        print(Fore.YELLOW + f'{timestamp} 本次需要自动暂停程序:是' + Fore.RESET)
+        print(
+            Fore.YELLOW + f'{timestamp} 设置的自动暂停程序时满足的程序运行时间:≥{set_pause_running_time[0]}s' + Fore.RESET)
+        print(
+            Fore.YELLOW + f'{timestamp} 设置的自动暂停程序时满足的今日单账号钻石收益:≤{set_pause_today_income[0]}' + Fore.RESET)
+        print(
+            Fore.YELLOW + f'{timestamp} 设置的自动暂停程序时满足的今日单账号钻石收益:≥{set_pause_today_income2[0]}' + Fore.RESET)
+        print(
+            Fore.YELLOW + f'{timestamp} 设置的自动暂停程序时满足的今日单账号参与福袋数:≥{set_pause_bag_num1[0]}' + Fore.RESET)
+        print(
+            Fore.YELLOW + f'{timestamp} 设置的自动暂停程序时满足的今日单账号已中福袋数:≥{set_pause_bag_num3[0]}' + Fore.RESET)
+    else:
+        print(Fore.YELLOW + f'{timestamp} 本次需要自动暂停程序:否' + Fore.RESET)
 
     normal_p = set_normal_p[0]
     base_normal_p = normal_p
@@ -2743,8 +2810,8 @@ if __name__ == "__main__":
     else:
         print(Fore.YELLOW + f'{timestamp} 是否抢实物福袋:否' + Fore.RESET)
 
-    print(Fore.YELLOW + f'{timestamp} 本次钻石收益的风控值:{set_risk_income[0]}' + Fore.RESET)
-    print(Fore.YELLOW + f'{timestamp} 今日钻石收益的风控值:{set_risk_today_income[0]}' + Fore.RESET)
+    print(Fore.YELLOW + f'{timestamp} 风控判断规则:本次钻石收益≤{set_risk_income[0]}' + Fore.RESET)
+    print(Fore.YELLOW + f'{timestamp} 风控判断规则:今日单账号钻石收益≥{set_risk_today_income[0]}' + Fore.RESET)
     print(Fore.YELLOW + f'{timestamp} 预期的抽中福袋的概率:{set_get_reward_p[0]}' + Fore.RESET)
     print(Fore.YELLOW + f'{timestamp} 提高的粉丝团福袋的筛选概率:{set_raise_fan_club_bag_p[0]}' + Fore.RESET)
     if is_VIP[0] == 1 or is_temporary_VIP[0] == 1:
@@ -2754,23 +2821,25 @@ if __name__ == "__main__":
             print(Fore.YELLOW + f'{timestamp} 启动程序时打开要切换的账号所在的浏览器:否' + Fore.RESET)
         if need_change_account[0] == 1:
             print(Fore.YELLOW + f'{timestamp} 本次需要切换账号:是' + Fore.RESET)
+            print(
+                Fore.YELLOW + f'{timestamp} 设置的切换账号时满足的程序运行时间:≥{set_change_account_running_time[0]}s' + Fore.RESET)
+            print(
+                Fore.YELLOW + f'{timestamp} 设置的切换账号时满足的今日单账号钻石收益:≤{set_change_account_today_income[0]}' + Fore.RESET)
+            print(
+                Fore.YELLOW + f'{timestamp} 设置的切换账号时满足的今日单账号钻石收益:≥{set_change_account_today_income2[0]}' + Fore.RESET)
+            print(
+                Fore.YELLOW + f'{timestamp} 设置的切换账号时满足的今日单账号参与福袋数:≥{set_change_account_bag_num1[0]}' + Fore.RESET)
+            print(
+                Fore.YELLOW + f'{timestamp} 设置的切换账号时满足的今日单账号已中福袋数:≥{set_change_account_bag_num3[0]}' + Fore.RESET)
         else:
             print(Fore.YELLOW + f'{timestamp} 本次需要切换账号:否' + Fore.RESET)
-        print(Fore.YELLOW + f'{timestamp} 设置的切换账号时满足的程序运行时间:≥{set_change_account_running_time[0]}s' + Fore.RESET)
-        print(
-            Fore.YELLOW + f'{timestamp} 设置的切换账号时满足的本次钻石收益:≤{set_change_account_income[0]}' + Fore.RESET)
-        print(
-            Fore.YELLOW + f'{timestamp} 设置的切换账号时满足的今日钻石收益:≥{set_change_account_today_income[0]}' + Fore.RESET)
-        print(
-            Fore.YELLOW + f'{timestamp} 设置的切换账号时满足的今日参与福袋数:≥{set_change_account_bag_num1[0]}' + Fore.RESET)
-        print(
-            Fore.YELLOW + f'{timestamp} 设置的切换账号时满足的今日已中福袋数:≥{set_change_account_bag_num3[0]}' + Fore.RESET)
+
         if want_red_packet[0]:
             print(Fore.YELLOW + f'{timestamp} 是否自动抢红包:是' + Fore.RESET)
         else:
             print(Fore.YELLOW + f'{timestamp} 是否自动抢红包:否' + Fore.RESET)
         if want_popularity_ticket_red_packet[0]:
-            print(Fore.YELLOW + f'{timestamp} 是否自动抢红人气包:是' + Fore.RESET)
+            print(Fore.YELLOW + f'{timestamp} 是否自动抢人气红包:是' + Fore.RESET)
             print(Fore.YELLOW + f'{timestamp} 设置的参与人气红包的次数上限:{set_max_count_popularity_ticket_red_packet[0]}' + Fore.RESET)
         else:
             print(Fore.YELLOW + f'{timestamp} 是否自动抢人气红包:否' + Fore.RESET)
@@ -3040,13 +3109,15 @@ if __name__ == "__main__":
 
                 temp_task = threading.Thread(target=open_temp_google_chrome)
                 temp_task.start()
-
+                
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(Fore.YELLOW + f'{timestamp} 正在获取关键数据...' + Fore.RESET)
 
         get_important_data()
 
         if msToken[0] != '' and a_bogus[0] != '':
+            temp_today_income = today_income[0]
+
             # 先推送一次
             notification_title = '今日数据'
             if bag_num1_dic[timestamp2] != 0:
