@@ -1,11 +1,13 @@
 # dy_lottery_helper
 ## 作者抖音号
 大号
+<img width="311" height="335" alt="作者抖音大号(2025-10-20)" src="https://github.com/user-attachments/assets/602ba6b7-2631-4daa-936d-8e6b477599b7" />
 ```
 86379612769
 ```
 
 小号
+<img width="314" height="288" alt="作者抖音小号(2025-10-20)" src="https://github.com/user-attachments/assets/83712e96-97dc-42c5-bc9a-3a07b54809e4" />
 ```
 74798518672
 ```
