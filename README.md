@@ -39,7 +39,7 @@ https://wwik.lanzouu.com/iPerg38ys78j
 
 4.程序带有被风控检测，如果检测到可能处于被风控状态，会更加严格地筛选福袋以减少福袋的参与，避免更严重的黑号情况，同时尽可能减少了因参与粉丝团福袋导致的钻石损失的情况
 ## 程序效果(双账号)(到目前为止最好的效果):
-<img width="1304" height="940" alt="0_today(2025-10-18)" src="https://github.com/user-attachments/assets/9013a576-796b-4fc6-90c8-b0a33faafe78" />
+<img width="1413" height="940" alt="0_today(2025-10-21)" src="https://github.com/user-attachments/assets/4d902a4b-4552-49cc-b983-975377a955bf" />
 
 ## 2025/10/21
 ## 版本3.3.2
