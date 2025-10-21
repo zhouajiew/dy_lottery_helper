@@ -137,6 +137,8 @@ bag_index = 0
 
 # 是否参与了红包
 have_participated_red_packet = False
+# 在task_while_staying_in_live中参与红包，红包剩余时间<30s标记一下，防止跳转到新直播间
+red_packet_almost_over = False
 
 # 两次进入有发红包的直播间的间隔>5分钟
 enter_red_packet_live_time = 0
@@ -3118,34 +3120,38 @@ if __name__ == "__main__":
         if msToken[0] != '' and a_bogus[0] != '':
             temp_today_income = today_income[0]
 
-            # 先推送一次
-            notification_title = '今日数据'
-            if bag_num1_dic[timestamp2] != 0:
-                notification_detailed_content = (
-                        f'{time.time()}\n'
-                        + f'今日总收益: %2B{today_income[0]}\n'
-                        + f'今日参与的福袋数: {bag_num1_dic[timestamp2]}\n'
-                        + f'今日中奖率: {bag_num3_dic[timestamp2] / bag_num1_dic[timestamp2]}\n'
-                        + f'今日中福袋的数量: {bag_num3_dic[timestamp2]}\n'
-                        + f'今日中实物福袋的数量: {real_object_num_dic[timestamp2]}\n'
-                        + f'今日中过的福袋的总收益: %2B{total_bag_num3_value[0]}\n'
-                        + f'今日中过的钻石红包的总收益: %2B{total_red_packet_num3_value[0]}\n'
-                        + f'今日参与的人气红包数: {popularity_ticket_num_dic[timestamp2]}\n'
-                        + f'今日中过的礼物红包的总收益: %2B{total_red_packet_gift_num3_value[0]}')
-            else:
-                notification_detailed_content = (
-                        f'{time.time()}\n'
-                        + f'今日总收益: %2B{today_income[0]}\n'
-                        + f'今日参与的福袋数: {bag_num1_dic[timestamp2]}\n'
-                        + f'今日中奖率: 0.00'
-                        + f'今日中福袋的数量: {bag_num3_dic[timestamp2]}\n'
-                        + f'今日中实物福袋的数量: {real_object_num_dic[timestamp2]}\n'
-                        + f'今日中过的福袋的总收益: %2B{total_bag_num3_value[0]}\n'
-                        + f'今日中过的钻石红包的总收益: %2B{total_red_packet_num3_value[0]}\n'
-                        + f'今日参与的人气红包数: {popularity_ticket_num_dic[timestamp2]}\n'
-                        + f'今日中过的礼物红包的总收益: %2B{total_red_packet_gift_num3_value[0]}')
+            if pushplus_token[0] != '':
+                # 先推送一次
+                notification_title = '今日数据'
 
-            send_wechat(notification_title, notification_detailed_content)
+                temp_t = '%2B' if today_income[0] >= 0 else ''
+
+                if bag_num1_dic[timestamp2] != 0:
+                    notification_detailed_content = (
+                            f'{time.time()}\n'
+                            + f'今日总收益: {temp_t}{today_income[0]}\n'
+                            + f'今日参与的福袋数: {bag_num1_dic[timestamp2]}\n'
+                            + f'今日中奖率: {bag_num3_dic[timestamp2] / bag_num1_dic[timestamp2]}\n'
+                            + f'今日中福袋的数量: {bag_num3_dic[timestamp2]}\n'
+                            + f'今日中实物福袋的数量: {real_object_num_dic[timestamp2]}\n'
+                            + f'今日中过的福袋的总收益: %2B{total_bag_num3_value[0]}\n'
+                            + f'今日中过的钻石红包的总收益: %2B{total_red_packet_num3_value[0]}\n'
+                            + f'今日参与的人气红包数: {popularity_ticket_num_dic[timestamp2]}\n'
+                            + f'今日中过的礼物红包的总收益: %2B{total_red_packet_gift_num3_value[0]}')
+                else:
+                    notification_detailed_content = (
+                            f'{time.time()}\n'
+                            + f'今日总收益: {temp_t}{today_income[0]}\n'
+                            + f'今日参与的福袋数: {bag_num1_dic[timestamp2]}\n'
+                            + f'今日中奖率: 0.00'
+                            + f'今日中福袋的数量: {bag_num3_dic[timestamp2]}\n'
+                            + f'今日中实物福袋的数量: {real_object_num_dic[timestamp2]}\n'
+                            + f'今日中过的福袋的总收益: %2B{total_bag_num3_value[0]}\n'
+                            + f'今日中过的钻石红包的总收益: %2B{total_red_packet_num3_value[0]}\n'
+                            + f'今日参与的人气红包数: {popularity_ticket_num_dic[timestamp2]}\n'
+                            + f'今日中过的礼物红包的总收益: %2B{total_red_packet_gift_num3_value[0]}')
+
+                send_wechat(notification_title, notification_detailed_content)
 
             # 开启无限循环线程保持浏览器处于运行状态
             t = threading.Thread(target=search)
