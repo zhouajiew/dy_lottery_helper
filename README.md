@@ -1,7 +1,7 @@
 # dy_lottery_helper
 ## 蓝奏云下载地址
 ```
-https://wwik.lanzouu.com/iPerg38ys78j
+https://wwik.lanzouu.com/ifDuX3941m7c
 ```
 
 ## 作者抖音号
@@ -40,6 +40,16 @@ https://wwik.lanzouu.com/iPerg38ys78j
 4.程序带有被风控检测，如果检测到可能处于被风控状态，会更加严格地筛选福袋以减少福袋的参与，避免更严重的黑号情况，同时尽可能减少了因参与粉丝团福袋导致的钻石损失的情况
 ## 程序效果(双账号)(到目前为止最好的效果):
 <img width="1413" height="940" alt="0_today(2025-10-21)" src="https://github.com/user-attachments/assets/4d902a4b-4552-49cc-b983-975377a955bf" />
+
+## 2025/10/23
+## 版本4.0.0
+1.对项目进行了重构，完全弃用了selenium，原先的selenium代码块已完全转换为playwright代码块，与此同时，**键盘监听事件’隐藏/恢复浏览器窗口’将不再生效！**
+
+**在使用最新项目前，请确保你下载/更新了Google Chrome浏览器！**
+
+2.新增逻辑:如果检测到search协程(线程->协程)运行异常，会自动重启浏览器
+
+3.新增逻辑:如果检测到有验证码iframe，会自动暂停程序，然后推送一次通知到你的微信提醒你手动完成验证
 
 ## 2025/10/21
 ## 版本3.3.2
