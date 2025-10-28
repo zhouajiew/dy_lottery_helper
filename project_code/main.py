@@ -30,9 +30,6 @@ from windows_api import *
 
 lock = threading.Lock()
 
-browser = None
-page = None
-
 # 当前账号index
 current_account_index = 0
 
@@ -107,7 +104,7 @@ error_windows = {}
 # 临时保存的room_id
 dic_room_id = {}
 
-# 防止重复开启'tasks_while_staying_in_live'线程
+# 防止重复开启'task_while_staying_in_live'线程
 working_threads = {}
 
 # 防止重复开启'delay_check'线程
@@ -163,7 +160,10 @@ notification_detailed_content = ''
 
 search_with_playwright_task = None
 start_thread_only_once = False
+
 browser2 = None
+browser_cookies = {}
+browser2_cookies = {}
 
 def send_wechat(title, content):
     token = pushplus_token[0]  # 后台提供的token
@@ -200,7 +200,6 @@ async def main2():
 
 async def main(temp_dir):
     global count_from_control_driver2_thread
-    global browser
 
     global wait_until_draw_end
     global have_participated_red_packet
@@ -221,9 +220,22 @@ async def main(temp_dir):
         search_with_playwright_task = asyncio.create_task(search_with_playwright())
 
     async with async_playwright() as p:
-        # run many at the same time
+        global browser_cookies
 
-        control_driver2_task = asyncio.create_task(control_driver2_with_playwright(p, temp_dir))
+        browser = await p.chromium.launch_persistent_context(
+            user_data_dir=temp_dir,
+            channel="chrome",
+            headless=False,
+            no_viewport=True,
+            # do NOT add custom browser headers or user_agent
+        )
+
+        browser_cookies = {
+            c["name"]: c["value"]
+            for c in await browser.cookies()
+        }
+
+        control_driver2_task = asyncio.create_task(control_driver2_with_playwright(browser, temp_dir))
 
         last_count = 0
         t1 = time.time()
@@ -288,19 +300,34 @@ async def check_search_thread_status():
 
     global search_with_playwright_task
 
+    global browser2
+    
     last_count = 0
     t1 = time.time()
     t2 = t1
 
+    temp_start_time = time.time()
+
     while True:
         if pause[0] == 0:
-            # 如果经过了60s后search的count值未发生变化，说明search线程出现了异常
-            if t2 - t1 > 60:
-                timestamp = datetime.now().strftime(
-                    "%Y-%m-%d %H:%M:%S")
-                print(
-                    Fore.RED + f'{timestamp} search线程出现异常，重启浏览器中' + Fore.RESET)
+            temp_current_time = time.time()
 
+            # 如果经过了60s后search的count值未发生变化，说明search线程出现了异常
+            # 或者每隔两小时自动重启浏览器
+            if t2 - t1 > 60 or temp_current_time - temp_start_time > 7200:
+                if t2 - t1 > 60:
+                    timestamp = datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")
+                    print(
+                        Fore.RED + f'{timestamp} search_with_playwright协程出现异常，重启浏览器中' + Fore.RESET)
+                if temp_current_time - temp_start_time > 7200:
+                    timestamp = datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")
+                    print(
+                        Fore.RED + f'{timestamp} search_with_playwright协程运行时间太长，重启浏览器中' + Fore.RESET)
+
+                temp_start_time = time.time()
+                
                 await browser2.close()
                 search_with_playwright_task.cancel()
                 await asyncio.sleep(3)
@@ -332,6 +359,9 @@ def get_live_by_api():
     global enter_red_packet_live_time
     global last_enter_red_packet_live_time
 
+    global browser_cookies
+    global browser2_cookies
+
     while True:
         if pause[0] == 0:
             all_lives = []
@@ -339,12 +369,12 @@ def get_live_by_api():
             temp_lives2 = []
 
             if is_VIP[0] == 1 or is_temporary_VIP[0] == 1:
-                temp_lives1 = get_live1()
+                temp_lives1 = get_live1(browser_cookies, browser2_cookies)
                 time.sleep(random.uniform(3, 5))
-                temp_lives2 = get_live1()
+                temp_lives2 = get_live1(browser_cookies, browser2_cookies)
                 all_lives = temp_lives1 + temp_lives2
             else:
-                all_lives = get_live1()
+                all_lives = get_live1(browser_cookies, browser2_cookies)
 
             '''
             p = f"{relative_path}/all_lives.json"
@@ -972,16 +1002,13 @@ async def task_while_staying_in_live_with_playwright(record_url, key_element_typ
     # 隐藏的代码块
 
 # 参与红包
-async def participate_red_packet(first_time):
+async def participate_red_packet(page, first_time):
     # 隐藏的代码块
 
-async def delay_check_with_playwright(key_element_type):
+async def delay_check_with_playwright(page, key_element_type):
     # 隐藏的代码块
 
-async def control_driver2_with_playwright(p, temp_dir):
-    global browser
-    global page
-
+async def control_driver2_with_playwright(browser, temp_dir):
     global start_time
     global current_account_index
     global record_time_count
@@ -1038,16 +1065,12 @@ async def control_driver2_with_playwright(p, temp_dir):
     global control_driver2_restart_browser
     global control_driver2_change_account
 
+    global browser2
+    global browser_cookies
+    global browser2_cookies
+
     control_driver2_restart_browser = False
     control_driver2_change_account = False
-
-    browser = await p.chromium.launch_persistent_context(
-        user_data_dir=temp_dir,
-        channel="chrome",
-        headless=False,
-        no_viewport=True,
-        # do NOT add custom browser headers or user_agent
-    )
 
     page = await browser.new_page()
 
@@ -1165,6 +1188,16 @@ async def control_driver2_with_playwright(p, temp_dir):
                 print(Fore.YELLOW + f'{timestamp} 实物福袋筛选概率已变更为:{real_object_p}' + Fore.RESET)
 
         if pause[0] == 0:
+            browser_cookies = {
+                c["name"]: c["value"]
+                for c in await browser.cookies()
+            }
+
+            browser2_cookies = {
+                c["name"]: c["value"]
+                for c in await browser2.cookies()
+            }
+
             # 检查是否有验证码
             captcha_frame = page.frame_locator("[src*='verifycenter/captcha']")
             captcha_close_button_element = await captcha_frame.locator("[class*='vc-captcha-close-btn']").all()
@@ -1351,7 +1384,7 @@ async def control_driver2_with_playwright(p, temp_dir):
 
                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     print(
-                        Fore.YELLOW + f'{timestamp} 程序运行时间太长，自动重启浏览器' + Fore.RESET)
+                        Fore.YELLOW + f'{timestamp} control_driver2协程运行时间太长，自动重启浏览器' + Fore.RESET)
 
                     control_driver2_restart_browser = True
 
@@ -1635,7 +1668,8 @@ async def control_driver2_with_playwright(p, temp_dir):
 
                                     live_room_changed = True
                                     try:
-                                        staying_in_live_task.cancel()
+                                        if staying_in_live_task:
+                                            staying_in_live_task.cancel()
 
                                         if staying_in_live_task_record_url in working_threads:
                                             del working_threads[staying_in_live_task_record_url]
@@ -1673,7 +1707,8 @@ async def control_driver2_with_playwright(p, temp_dir):
 
                                         live_room_changed = True
                                         try:
-                                            staying_in_live_task.cancel()
+                                            if staying_in_live_task:
+                                                staying_in_live_task.cancel()
 
                                             if staying_in_live_task_record_url in working_threads:
                                                 del working_threads[staying_in_live_task_record_url]
@@ -1727,7 +1762,8 @@ async def control_driver2_with_playwright(p, temp_dir):
 
                                         live_room_changed = True
                                         try:
-                                            staying_in_live_task.cancel()
+                                            if staying_in_live_task:
+                                                staying_in_live_task.cancel()
 
                                             if staying_in_live_task_record_url in working_threads:
                                                 del working_threads[staying_in_live_task_record_url]
@@ -1776,7 +1812,8 @@ async def control_driver2_with_playwright(p, temp_dir):
 
                                             live_room_changed = True
                                             try:
-                                                staying_in_live_task.cancel()
+                                                if staying_in_live_task:
+                                                    staying_in_live_task.cancel()
 
                                                 if staying_in_live_task_record_url in working_threads:
                                                     del working_threads[staying_in_live_task_record_url]
@@ -1933,7 +1970,7 @@ async def control_driver2_with_playwright(p, temp_dir):
                                 dc.start()
                                 '''
 
-                                asyncio.create_task(delay_check_with_playwright(key_element_type))
+                                asyncio.create_task(delay_check_with_playwright(page, key_element_type))
 
                                 working_threads2[temp_url] = 1
                         except Exception as e:
