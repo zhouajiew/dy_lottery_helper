@@ -28,7 +28,7 @@ from windows_api import *
 
 # pip install fake-useragent --upgrade
 
-lock = threading.Lock()
+lock = asyncio.Lock()
 
 # 当前账号index
 current_account_index = 0
@@ -1440,7 +1440,7 @@ async def control_driver2_with_playwright(browser, temp_dir):
 
             error_occur = False
 
-            with lock:
+            async with lock:
                 # 清除所有剩余时间小于0/p_time >= 300的网页
                 temp_websites = []
                 for e in eligible_websites:
@@ -1504,7 +1504,7 @@ async def control_driver2_with_playwright(browser, temp_dir):
 
                                 # 剩余时间长的实物福袋排最前面，因为是最新检测到有发实物福袋的
                                 # 如果设置了实物福袋，优先参与实物福袋
-                                e['estimate_p'] = 1 - p_time / 1000000
+                                e['estimate_p'] = 1 - p_time / 10000
                             else:
                                 e_time = e.get('record_time')
                                 p_time = time.time() - e_time
@@ -1558,13 +1558,13 @@ async def control_driver2_with_playwright(browser, temp_dir):
                         e['p_time'] = p_time
 
                         # 剩余时间长的红包排最前面，因为是最新检测到有红包的
-                        e['estimate_p'] = 0.01 - p_time / 1000000
+                        e['estimate_p'] = (1 - p_time / 10000) / 1000
 
             original_stay_in_live_index = -1
 
             if len(eligible_websites) > 0:
                 # 预测中奖概率最大的排前面
-                with lock:
+                async with lock:
                     eligible_websites.sort(key=lambda x: x["estimate_p"], reverse=True)
 
                 for idx, ew in enumerate(eligible_websites):
