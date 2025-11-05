@@ -1,7 +1,7 @@
 # dy_lottery_helper
 ## 蓝奏云下载地址
 ```
-https://wwik.lanzouu.com/iJcd63a7inbi
+https://wwik.lanzouu.com/ij3Zo3a7ja5a
 ```
 
 ## 作者抖音号
