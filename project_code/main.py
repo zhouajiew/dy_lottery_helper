@@ -211,13 +211,9 @@ async def main(temp_dir):
     global save_google_chrome_dir
 
     global search_with_playwright_task
-    global start_thread_only_once
 
-    if not start_thread_only_once:
-        start_thread_only_once = True
-
-        check_search_thread_status_task = asyncio.create_task(check_search_thread_status())
-        search_with_playwright_task = asyncio.create_task(search_with_playwright())
+    check_search_thread_status_task = asyncio.create_task(check_search_thread_status())
+    search_with_playwright_task = asyncio.create_task(search_with_playwright())
 
     async with async_playwright() as p:
         global browser_cookies
@@ -235,7 +231,7 @@ async def main(temp_dir):
             for c in await browser.cookies()
         }
 
-        control_driver2_task = asyncio.create_task(control_driver2_with_playwright(browser, temp_dir))
+        control_driver2_task = asyncio.create_task(control_driver2_with_playwright(browser))
 
         last_count = 0
         t1 = time.time()
@@ -243,36 +239,39 @@ async def main(temp_dir):
 
         # 检测control_driver2_with_playwright是否出现了异常
         while True:
+            restart_task = False
+
             if control_driver2_restart_browser or control_driver2_change_account:
+                restart_task = True
+                t1 = t2
+
                 if control_driver2_restart_browser:
                     control_driver2_restart_browser = False
                 if control_driver2_change_account:
                     control_driver2_change_account = False
-
-                break
-
             if pause[0] == 0:
-                # 如果经过了60s后control_driver2的count值未发生变化，说明control_driver2_with_playwright线程出现了异常
-                if t2 - t1 > 60:
+                # 如果经过了90s后control_driver2的count值未发生变化，说明control_driver2_with_playwright线程出现了异常
+                if t2 - t1 > 90:
+                    restart_task = True
+                    t1 = t2
+
+                    try:
+                        control_driver2_task.cancel()
+                    except Exception as e:
+                        timestamp = datetime.now().strftime(
+                            "%Y-%m-%d %H:%M:%S")
+                        print(
+                            Fore.RED + f'{timestamp} 取消control_driver2_task失败！' + Fore.RESET)
+
                     timestamp = datetime.now().strftime(
                         "%Y-%m-%d %H:%M:%S")
                     print(
-                        Fore.RED + f'{timestamp} control_driver2线程出现异常，重启浏览器中' + Fore.RESET)
+                        Fore.RED + f'{timestamp} control_driver2协程出现异常，重启浏览器中' + Fore.RESET)
 
                     # 重启浏览器时重置这些变量
                     wait_until_draw_end = False
                     have_participated_red_packet = False
                     working_threads2 = {}
-
-                    try:
-                        await browser.close()
-                    except Exception as e:
-                        timestamp = datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S")
-                        print(
-                            Fore.RED + f'{timestamp} 关闭浏览器失败！' + Fore.RESET)
-
-                    break
 
                 if last_count != count_from_control_driver2_thread:
                     t1 = t2
@@ -280,19 +279,29 @@ async def main(temp_dir):
                 else:
                     t2 = time.time()
 
+            if restart_task:
+                try:
+                    await browser.close()
+                except Exception as e:
+                    timestamp = datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")
+                    print(
+                        Fore.RED + f'{timestamp} 关闭浏览器(browser)失败！' + Fore.RESET)
+
+                await asyncio.sleep(3)
+
+                browser = await p.chromium.launch_persistent_context(
+                    user_data_dir=save_google_chrome_dir,
+                    channel="chrome",
+                    headless=False,
+                    no_viewport=True,
+                    # do NOT add custom browser headers or user_agent
+                )
+
+                control_driver2_task = asyncio.create_task(control_driver2_with_playwright(browser))
+
             # time.sleep(1)
             await asyncio.sleep(1)
-
-        try:
-            control_driver2_task.cancel()
-        except Exception as e:
-            timestamp = datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S")
-            print(
-                Fore.RED + f'{timestamp} 取消control_driver2_task失败！' + Fore.RESET)
-
-    await asyncio.sleep(3)
-    await main(save_google_chrome_dir)
 
 # 检查search协程运行情况
 async def check_search_thread_status():
@@ -301,7 +310,7 @@ async def check_search_thread_status():
     global search_with_playwright_task
 
     global browser2
-    
+
     last_count = 0
     t1 = time.time()
     t2 = t1
@@ -312,10 +321,10 @@ async def check_search_thread_status():
         if pause[0] == 0:
             temp_current_time = time.time()
 
-            # 如果经过了60s后search的count值未发生变化，说明search线程出现了异常
+            # 如果经过了90s后search的count值未发生变化，说明search线程出现了异常
             # 或者每隔两小时自动重启浏览器
-            if t2 - t1 > 60 or temp_current_time - temp_start_time > 7200:
-                if t2 - t1 > 60:
+            if t2 - t1 > 90 or temp_current_time - temp_start_time > 7200:
+                if t2 - t1 > 90:
                     timestamp = datetime.now().strftime(
                         "%Y-%m-%d %H:%M:%S")
                     print(
@@ -327,9 +336,17 @@ async def check_search_thread_status():
                         Fore.RED + f'{timestamp} search_with_playwright协程运行时间太长，重启浏览器中' + Fore.RESET)
 
                 temp_start_time = time.time()
-                
-                await browser2.close()
-                search_with_playwright_task.cancel()
+
+                try:
+                    search_with_playwright_task.cancel()
+                except Exception as e:
+                    timestamp = datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")
+                    print(
+                        Fore.RED + f'{timestamp} 取消search_with_playwright_task失败！' + Fore.RESET)
+
+                # 取消search_with_playwright_task后会自动关闭浏览器，不需要再关闭！
+
                 await asyncio.sleep(3)
                 search_with_playwright_task = asyncio.create_task(search_with_playwright())
                 t1 = t2
@@ -1008,7 +1025,7 @@ async def participate_red_packet(page, first_time):
 async def delay_check_with_playwright(page, key_element_type):
     # 隐藏的代码块
 
-async def control_driver2_with_playwright(browser, temp_dir):
+async def control_driver2_with_playwright(browser):
     global start_time
     global current_account_index
     global record_time_count
@@ -2045,12 +2062,6 @@ if __name__ == "__main__":
     # 禁用了SetForegroundWindow方法也不会对Selenium产生影响，因为这和在PyCharm里运行的效果是一样的
     ctypes.windll.user32.LockSetForegroundWindow(1)
 
-    # 初始化colorama
-    init()
-
-    tp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(Fore.YELLOW + f'{tp} 正在连接服务器中...' + Fore.RESET)
-
     # 设置临时的系统变量，以正常运行Microsoft Edge WebDriver
     os.environ['Path'] = os.environ.get('path') + relative_path
 
@@ -2083,9 +2094,6 @@ if __name__ == "__main__":
     temp_bag_num3_dic[timestamp2] = today_bag_num3[0]
     real_object_num_dic[timestamp2] = today_real_object_num[0]
     popularity_ticket_num_dic[timestamp2] = today_popularity_ticket_red_packet_num[0]
-
-    # 初始化用户信息
-    get_user_info()
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if pause_automatically[0] == 1:
@@ -2198,9 +2206,6 @@ if __name__ == "__main__":
             print(Fore.YELLOW + f'{timestamp} 是否自动抢人气红包:否' + Fore.RESET)
             print(Fore.YELLOW + f'{timestamp} 设置的参与人气红包的次数上限:{set_max_count_popularity_ticket_red_packet[0]}' + Fore.RESET)
 
-    # 比较程序版本
-    get_program_version()
-
     time.sleep(5)
 
     if login_status[0] == 1:
@@ -2297,3 +2302,5 @@ if __name__ == "__main__":
     else:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(Fore.RED + f'{timestamp} 当前未登录，请正确填写_internal/user.json文件！' + Fore.RESET)
+
+        time.sleep(5)
