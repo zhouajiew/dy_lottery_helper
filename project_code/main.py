@@ -5,11 +5,13 @@ import time
 import math
 import threading
 
-import ctypes
+import requests
+import socketio
+
+# 浮点数计算显示有问题，需要用到这个库
+from decimal import Decimal
 
 from asyncio import timeout
-
-import requests
 
 from datetime import datetime
 
@@ -104,10 +106,10 @@ error_windows = {}
 # 临时保存的room_id
 dic_room_id = {}
 
-# 防止重复开启'task_while_staying_in_live'线程
+# 防止重复开启'task_while_staying_in_live_with_playwright'协程
 working_threads = {}
 
-# 防止重复开启'delay_check'线程
+# 防止重复开启'delay_check_with_playwright'协程
 working_threads2 = {}
 
 # 需要更新room_id的record3中的直播间
@@ -159,11 +161,27 @@ notification_title = ''
 notification_detailed_content = ''
 
 search_with_playwright_task = None
-start_thread_only_once = False
 
-browser2 = None
 browser_cookies = {}
 browser2_cookies = {}
+
+reduced_amount = 0
+sio = socketio.AsyncClient()
+
+@sio.on('update_result')
+async def update_result(data):
+    # 隐藏的代码块
+
+@sio.on('update_succeed')
+async def update_succeed(data):
+    # 隐藏的代码块
+
+@sio.event
+async def connect():
+    # 隐藏的代码块
+    
+async def change_balance(diamond_num):
+    # 隐藏的代码块
 
 def send_wechat(title, content):
     token = pushplus_token[0]  # 后台提供的token
@@ -214,94 +232,61 @@ async def main(temp_dir):
 
     check_search_thread_status_task = asyncio.create_task(check_search_thread_status())
     search_with_playwright_task = asyncio.create_task(search_with_playwright())
+    control_driver2_with_playwright_task = asyncio.create_task(control_driver2_with_playwright())
 
-    async with async_playwright() as p:
-        global browser_cookies
+    last_count = 0
+    t1 = time.time()
+    t2 = t1
 
-        browser = await p.chromium.launch_persistent_context(
-            user_data_dir=temp_dir,
-            channel="chrome",
-            headless=False,
-            no_viewport=True,
-            # do NOT add custom browser headers or user_agent
-        )
+    # 检测control_driver2_with_playwright是否出现了异常
+    while True:
+        restart_task = False
 
-        browser_cookies = {
-            c["name"]: c["value"]
-            for c in await browser.cookies()
-        }
+        if control_driver2_restart_browser or control_driver2_change_account:
+            restart_task = True
+            t1 = t2
 
-        control_driver2_task = asyncio.create_task(control_driver2_with_playwright(browser))
+            await asyncio.sleep(2)
 
-        last_count = 0
-        t1 = time.time()
-        t2 = t1
-
-        # 检测control_driver2_with_playwright是否出现了异常
-        while True:
-            restart_task = False
-
-            if control_driver2_restart_browser or control_driver2_change_account:
+            if control_driver2_restart_browser:
+                control_driver2_restart_browser = False
+            if control_driver2_change_account:
+                control_driver2_change_account = False
+        if pause[0] == 0:
+            # 如果经过了120s后control_driver2的count值未发生变化，说明control_driver2_with_playwright协程出现了异常
+            if t2 - t1 > 120:
                 restart_task = True
                 t1 = t2
 
-                if control_driver2_restart_browser:
-                    control_driver2_restart_browser = False
-                if control_driver2_change_account:
-                    control_driver2_change_account = False
-            if pause[0] == 0:
-                # 如果经过了90s后control_driver2的count值未发生变化，说明control_driver2_with_playwright线程出现了异常
-                if t2 - t1 > 90:
-                    restart_task = True
-                    t1 = t2
-
-                    try:
-                        control_driver2_task.cancel()
-                    except Exception as e:
-                        timestamp = datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S")
-                        print(
-                            Fore.RED + f'{timestamp} 取消control_driver2_task失败！' + Fore.RESET)
-
-                    timestamp = datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S")
-                    print(
-                        Fore.RED + f'{timestamp} control_driver2协程出现异常，重启浏览器中' + Fore.RESET)
-
-                    # 重启浏览器时重置这些变量
-                    wait_until_draw_end = False
-                    have_participated_red_packet = False
-                    working_threads2 = {}
-
-                if last_count != count_from_control_driver2_thread:
-                    t1 = t2
-                    last_count = count_from_control_driver2_thread
-                else:
-                    t2 = time.time()
-
-            if restart_task:
                 try:
-                    await browser.close()
+                    control_driver2_with_playwright_task.cancel()
                 except Exception as e:
                     timestamp = datetime.now().strftime(
                         "%Y-%m-%d %H:%M:%S")
                     print(
-                        Fore.RED + f'{timestamp} 关闭浏览器(browser)失败！' + Fore.RESET)
+                        Fore.RED + f'{timestamp} 取消control_driver2_task失败！' + Fore.RESET)
 
-                await asyncio.sleep(3)
+                timestamp = datetime.now().strftime(
+                    "%Y-%m-%d %H:%M:%S")
+                print(
+                    Fore.RED + f'{timestamp} control_driver2_with_playwright协程出现异常，重启浏览器中' + Fore.RESET)
 
-                browser = await p.chromium.launch_persistent_context(
-                    user_data_dir=save_google_chrome_dir,
-                    channel="chrome",
-                    headless=False,
-                    no_viewport=True,
-                    # do NOT add custom browser headers or user_agent
-                )
+                # 重启浏览器时重置这些变量
+                wait_until_draw_end = False
+                have_participated_red_packet = False
+                working_threads2 = {}
 
-                control_driver2_task = asyncio.create_task(control_driver2_with_playwright(browser))
+            if last_count != count_from_control_driver2_thread:
+                t1 = t2
+                last_count = count_from_control_driver2_thread
+            else:
+                t2 = time.time()
 
-            # time.sleep(1)
-            await asyncio.sleep(1)
+        if restart_task:
+            control_driver2_with_playwright_task = asyncio.create_task(control_driver2_with_playwright())
+
+        # time.sleep(1)
+        await asyncio.sleep(1)
 
 # 检查search协程运行情况
 async def check_search_thread_status():
@@ -1025,7 +1010,7 @@ async def participate_red_packet(page, first_time):
 async def delay_check_with_playwright(page, key_element_type):
     # 隐藏的代码块
 
-async def control_driver2_with_playwright(browser):
+async def control_driver2_with_playwright():
     global start_time
     global current_account_index
     global record_time_count
@@ -1082,747 +1067,638 @@ async def control_driver2_with_playwright(browser):
     global control_driver2_restart_browser
     global control_driver2_change_account
 
-    global browser2
     global browser_cookies
     global browser2_cookies
 
-    control_driver2_restart_browser = False
-    control_driver2_change_account = False
+    def reset_temporary_vip2():
+        global normal_p
+        global base_normal_p
+        global fan_club_p
+        global base_fan_club_p
+        global real_object_p
+        global base_real_object_p
 
-    page = await browser.new_page()
+        normal_p = set_normal_p[0]
+        base_normal_p = normal_p
+        fan_club_p = set_fan_club_p[0]
+        base_fan_club_p = fan_club_p
+        real_object_p = set_real_object_p[0]
+        base_real_object_p = real_object_p
 
-    # page.goto("https://bot.sannysoft.com/")
-    # page.goto("https://www.browserscan.net/bot-detection")
+        # 动态调整粉丝团福袋的筛选概率
+        timestamp2 = datetime.now().strftime("%Y-%m-%d")
+        temp_today_bag_num2 = bag_num1_dic[timestamp2] - bag_num3_dic[timestamp2]
 
-    try:
-        await page.goto("https://www.douyin.com/jingxuan", timeout=20000)
-    except Exception as e:
+        if temp_today_bag_num2 > 0:
+            fan_club_p = base_fan_club_p + math.log(temp_today_bag_num2, 2) / 100 + bag_num3_dic[
+                timestamp2] / 100
+
+        if normal_p < min_normal_p[0]:
+            normal_p = min_normal_p[0]
+        if normal_p > max_normal_p[0]:
+            normal_p = max_normal_p[0]
+
+        if fan_club_p < min_fan_club_p[0]:
+            fan_club_p = min_fan_club_p[0]
+        if fan_club_p > max_fan_club_p[0]:
+            fan_club_p = max_fan_club_p[0]
+
+        if real_object_p < min_real_object_p[0]:
+            real_object_p = min_real_object_p[0]
+        if real_object_p > max_real_object_p[0]:
+            real_object_p = max_real_object_p[0]
+
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+        print(Fore.YELLOW + f'{timestamp} 普通福袋筛选概率已变更为:{normal_p}' + Fore.RESET)
 
-    # await page.pause()
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(Fore.YELLOW + f'{timestamp} 粉丝团福袋筛选概率已变更为:{fan_club_p}' + Fore.RESET)
 
-    while True:
-        # 消息推送
-        if pushplus_token[0] != '':
-            if need_to_receive_notification:
-                need_to_receive_notification = False
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(Fore.YELLOW + f'{timestamp} 实物福袋筛选概率已变更为:{real_object_p}' + Fore.RESET)
 
-                send_wechat(notification_title, notification_detailed_content)
+    async with async_playwright() as p:
+        global browser_cookies
 
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                print(Fore.GREEN + f'{timestamp} 已推送中奖通知至微信:D' + Fore.RESET)
+        browser = await p.chromium.launch_persistent_context(
+            user_data_dir=save_google_chrome_dir,
+            channel="chrome",
+            headless=False,
+            no_viewport=True,
+            # do NOT add custom browser headers or user_agent
+        )
 
-        # 去除符合条件的已参与人气红包的直播间
-        temp_index_list = []
-        current_time = datetime.now().strftime("%H:%M:%S")
-        for idx, a in enumerate(already_buy_popularity_ticket):
-            # 比较小时位的差异，小时位不一样就是需要再次花1钻参与人气红包了
-            if a.get('record_time'):
-                temp_record_time = a['record_time']
-                pattern = r'([0-9])+:([0-9]+):([0-9]+)'
-                temp_h = -1
-                temp_h2 = -1
-                if re.search(pattern, current_time):
-                    temp_h = re.search(pattern, current_time).group(1)
+        control_driver2_restart_browser = False
+        control_driver2_change_account = False
 
-                if re.search(pattern, temp_record_time):
-                    temp_h2 = re.search(pattern, temp_record_time).group(1)
+        page = await browser.new_page()
 
-                if temp_h != -1 and temp_h2 != -1:
-                    if temp_h2 != temp_h:
-                        temp_index_list.append(idx)
+        # page.goto("https://bot.sannysoft.com/")
+        # page.goto("https://www.browserscan.net/bot-detection")
 
-        if len(temp_index_list) > 0:
-            temp_already_buy_popularity_ticket = []
-            for idx, a in enumerate(already_buy_popularity_ticket):
-                if idx not in temp_index_list:
-                    temp_already_buy_popularity_ticket.append(a)
-
-            already_buy_popularity_ticket = temp_already_buy_popularity_ticket[:]
-
-            # 打开文件，以写入模式创建文件对象
-            with open(f'{relative_path}/already_buy_popularity_ticket.json', 'w',
-                      encoding='utf-8') as file:
-                # indent=1 每个层级缩进1个空格
-                file.write(json.dumps(already_buy_popularity_ticket, indent=1, ensure_ascii=False))
-
-        if is_temporary_VIP[0] == 1:
-            # 在免费VIP时段，设置临时VIP
-            pattern = r'([0-9]+):([0-9]+):([0-9]+)'
-
-            timestamp = datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S")
-            temp_h = -1
-            temp_m = -1
-            temp_s = -1
-            if re.search(pattern, timestamp):
-                temp_h = int(re.search(pattern, timestamp).group(1))
-                temp_m = int(re.search(pattern, timestamp).group(2))
-                temp_s = int(re.search(pattern, timestamp).group(3))
-
-            # 非免费VIP时段，还原至初始功能
-            if temp_h * 3600 + temp_m * 60 < 72000 or temp_h * 3600 + temp_m * 60 + temp_s > 79200:
-                reset_temporary_vip()
-
-                normal_p = set_normal_p[0]
-                base_normal_p = normal_p
-                fan_club_p = set_fan_club_p[0]
-                base_fan_club_p = fan_club_p
-                real_object_p = set_real_object_p[0]
-                base_real_object_p = real_object_p
-
-                # 动态调整粉丝团福袋的筛选概率
-                timestamp2 = datetime.now().strftime("%Y-%m-%d")
-                temp_today_bag_num2 = bag_num1_dic[timestamp2] - bag_num3_dic[timestamp2]
-
-                if temp_today_bag_num2 > 0:
-                    fan_club_p = base_fan_club_p + math.log(temp_today_bag_num2, 2) / 100 + bag_num3_dic[
-                        timestamp2] / 100
-
-                if normal_p < min_normal_p[0]:
-                    normal_p = min_normal_p[0]
-                if normal_p > max_normal_p[0]:
-                    normal_p = max_normal_p[0]
-
-                if fan_club_p < min_fan_club_p[0]:
-                    fan_club_p = min_fan_club_p[0]
-                if fan_club_p > max_fan_club_p[0]:
-                    fan_club_p = max_fan_club_p[0]
-
-                if real_object_p < min_real_object_p[0]:
-                    real_object_p = min_real_object_p[0]
-                if real_object_p > max_real_object_p[0]:
-                    real_object_p = max_real_object_p[0]
-
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                print(Fore.YELLOW + f'{timestamp} 普通福袋筛选概率已变更为:{normal_p}' + Fore.RESET)
-
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                print(Fore.YELLOW + f'{timestamp} 粉丝团福袋筛选概率已变更为:{fan_club_p}' + Fore.RESET)
-
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                print(Fore.YELLOW + f'{timestamp} 实物福袋筛选概率已变更为:{real_object_p}' + Fore.RESET)
-
-        if pause[0] == 0:
-            browser_cookies = {
-                c["name"]: c["value"]
-                for c in await browser.cookies()
-            }
-
-            browser2_cookies = {
-                c["name"]: c["value"]
-                for c in await browser2.cookies()
-            }
-
-            # 检查是否有验证码
-            captcha_frame = page.frame_locator("[src*='verifycenter/captcha']")
-            captcha_close_button_element = await captcha_frame.locator("[class*='vc-captcha-close-btn']").all()
-
-            if captcha_close_button_element:
-                pause[0] = 1
-
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                print(Fore.GREEN + f'{timestamp} 检测到有验证码iframe，程序已自动暂停，请手动完成验证！' + Fore.RESET)
-
-                need_to_receive_notification = True
-                notification_title = '检测到有验证码ifame'
-                notification_detailed_content = '程序已自动暂停，请手动完成验证！'
-
-            end_time = time.time()
-            temp_time = end_time - start_time
-            temp_time = round(temp_time, 2)
-
+        try:
+            await page.goto("https://www.douyin.com/jingxuan", timeout=20000)
+        except Exception as e:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            print(Fore.YELLOW + f'{timestamp} 当前程序运行时间:{temp_time}s' + Fore.RESET)
-            '''
-            if end_time - start_time > record_time_count * 10:
-                record_time_count += 1
-                '''
+            print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
 
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            print(
-                Fore.GREEN + f'{timestamp} 本次已参与福袋数:' + Fore.LIGHTBLUE_EX + f'{bag_num1}' + Fore.GREEN + '，未中奖福袋数:' + Fore.RED + f'{bag_num2}' + Fore.GREEN + '，中奖福袋数:' + Fore.YELLOW + f'{bag_num3}' + Fore.RESET)
+        # await page.pause()
 
-            income = final_diamond - initial_diamond
+        while True:
+            try:
+                # 判断VIP是否失效
+                if is_VIP[0]:
+                    if time.time() > VIP_expire_time[0] and balance[0] <= 0:
+                        is_VIP[0] = False
 
-            if income >= 0:
-                if today_income[0] >= 0:
-                    print(
-                        Fore.YELLOW + f'{timestamp} 本次钻石收益:+{income}，今日钻石收益:+{today_income[0]}，今日中过的福袋的总收益:+{total_bag_num3_value[0]}，今日中过的钻石红包的总收益:+{total_red_packet_num3_value[0]}, 今日中过的礼物红包的总收益:+{total_red_packet_gift_num3_value[0]}' + Fore.RESET)
-                else:
-                    print(
-                        Fore.YELLOW + f'{timestamp} 本次钻石收益:+{income}，' + Fore.LIGHTBLUE_EX + f'今日钻石收益:{today_income[0]}，' + Fore.YELLOW + f'今日中过的福袋的总收益:+{total_bag_num3_value[0]}，今日中过的红包的总收益:+{total_red_packet_num3_value[0]}, 今日中过的礼物红包的总收益:+{total_red_packet_gift_num3_value[0]}' + Fore.RESET)
-            else:
-                if today_income[0] >= 0:
-                    print(
-                        Fore.LIGHTBLUE_EX + f'{timestamp} 本次钻石收益:{income}，' + Fore.YELLOW + f'今日钻石收益:+{today_income[0]}，今日中过的福袋的总收益:+{total_bag_num3_value[0]}，今日中过的钻石红包的总收益:+{total_red_packet_num3_value[0]}, 今日中过的礼物红包的总收益:+{total_red_packet_gift_num3_value[0]}' + Fore.RESET)
-                else:
-                    print(
-                        Fore.LIGHTBLUE_EX + f'{timestamp} 本次钻石收益:{income}，今日钻石收益:{today_income[0]}，' + Fore.YELLOW + f'今日中过的福袋的总收益:+{total_bag_num3_value[0]}，今日中过的钻石红包的总收益:+{total_red_packet_num3_value[0]}, 今日中过的礼物红包的总收益:+{total_red_packet_gift_num3_value[0]}' + Fore.RESET)
+                        reset_config_if_meets_conditions('VIP已过期且余额不足，无法使用VIP功能:(')
+                        reset_temporary_vip2()
 
-            if bad_luck:
-                # 可能被风控的几种情况
-                at_risk = False
-                # 本次钻石收益 <= set_risk_income[0] or 今日单账号钻石收益 <= set_risk_today_income[0]
-                if income <= set_risk_income[0] or temp_today_income <= set_risk_today_income[0]:
-                    at_risk = True
-                # 中奖福袋数为0的情况下，未中奖福袋数 > 1 / set_get_reward_p[0]
-                if bag_num3 == 0 and bag_num2 > 1 / set_get_reward_p[0]:
-                    at_risk = True
-                # 中奖福袋数不为0的情况下，中奖福袋数 / 本次已参与福袋数 < set_get_reward_p[0]
-                if bag_num3 != 0 and bag_num3 / bag_num1 < set_get_reward_p[0]:
-                    at_risk = True
+                # 消息推送
+                if pushplus_token[0] != '':
+                    if need_to_receive_notification:
+                        need_to_receive_notification = False
 
-                if not at_risk:
-                    bad_luck = False
+                        send_wechat(notification_title, notification_detailed_content)
 
-                    base_fan_club_p -= set_raise_fan_club_bag_p[0]
-                    fan_club_p -= set_raise_fan_club_bag_p[0]
+                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(Fore.GREEN + f'{timestamp} 已推送中奖通知至微信:D' + Fore.RESET)
 
-                    normal_p = base_normal_p
+                # 去除符合条件的已参与人气红包的直播间
+                temp_index_list = []
+                current_time = datetime.now().strftime("%H:%M:%S")
+                for idx, a in enumerate(already_buy_popularity_ticket):
+                    # 比较小时位的差异，小时位不一样就是需要再次花1钻参与人气红包了
+                    if a.get('record_time'):
+                        temp_record_time = a['record_time']
+                        pattern = r'([0-9])+:([0-9]+):([0-9]+)'
+                        temp_h = -1
+                        temp_h2 = -1
+                        if re.search(pattern, current_time):
+                            temp_h = re.search(pattern, current_time).group(1)
 
-                    # time.sleep(0.25)
-                    await asyncio.sleep(0.25)
+                        if re.search(pattern, temp_record_time):
+                            temp_h2 = re.search(pattern, temp_record_time).group(1)
 
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(
-                        Fore.GREEN + f'{timestamp} 当前暂时回归正常状态，将降低抢粉丝团福袋的筛选概率，同时提高普通福袋的筛选概率' + Fore.RESET)
-                    print(Fore.YELLOW + f'{timestamp} 粉丝团福袋的筛选概率已调整至{fan_club_p}' + Fore.RESET)
-                    print(Fore.YELLOW + f'{timestamp} 普通福袋的筛选概率已调整至{normal_p}' + Fore.RESET)
+                        if temp_h != -1 and temp_h2 != -1:
+                            if temp_h2 != temp_h:
+                                temp_index_list.append(idx)
 
-            if not bad_luck:
-                # 可能被风控的几种情况
-                at_risk = False
-                # 本次钻石收益 <= set_risk_income[0] or 今日单账号钻石收益 <= set_risk_today_income[0]
-                if income <= income <= set_risk_income[0] or temp_today_income <= set_risk_today_income[0]:
-                    at_risk = True
-                # 中奖福袋数为0的情况下，未中奖福袋数 > 1 / set_get_reward_p[0]
-                if bag_num3 == 0 and bag_num2 > 1 / set_get_reward_p[0]:
-                    at_risk = True
-                # 中奖福袋数不为0的情况下，中奖福袋数 / 本次已参与福袋数 < set_get_reward_p[0]
-                if bag_num3 != 0 and bag_num3 / bag_num1 < set_get_reward_p[0]:
-                    at_risk = True
+                if len(temp_index_list) > 0:
+                    temp_already_buy_popularity_ticket = []
+                    for idx, a in enumerate(already_buy_popularity_ticket):
+                        if idx not in temp_index_list:
+                            temp_already_buy_popularity_ticket.append(a)
 
-                if at_risk:
-                    bad_luck = True
+                    already_buy_popularity_ticket = temp_already_buy_popularity_ticket[:]
 
-                    base_fan_club_p += set_raise_fan_club_bag_p[0]
-                    fan_club_p += set_raise_fan_club_bag_p[0]
+                    # 打开文件，以写入模式创建文件对象
+                    with open(f'{relative_path}/already_buy_popularity_ticket.json', 'w',
+                              encoding='utf-8') as file:
+                        # indent=1 每个层级缩进1个空格
+                        file.write(json.dumps(already_buy_popularity_ticket, indent=1, ensure_ascii=False))
 
-                    normal_p = base_normal_p * 0.8
+                if is_temporary_VIP[0] == 1:
+                    # 在免费VIP时段，设置临时VIP
+                    pattern = r'([0-9]+):([0-9]+):([0-9]+)'
 
-                    # time.sleep(0.25)
-                    await asyncio.sleep(0.25)
+                    timestamp = datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S")
+                    temp_h = -1
+                    temp_m = -1
+                    temp_s = -1
+                    if re.search(pattern, timestamp):
+                        temp_h = int(re.search(pattern, timestamp).group(1))
+                        temp_m = int(re.search(pattern, timestamp).group(2))
+                        temp_s = int(re.search(pattern, timestamp).group(3))
 
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(
-                        Fore.RED + f'{timestamp} 当前可能处于被风控状态，将提高抢粉丝团福袋的筛选概率，同时降低普通福袋的筛选概率' + Fore.RESET)
-                    print(Fore.YELLOW + f'{timestamp} 粉丝团福袋的筛选概率已调整至{fan_club_p}' + Fore.RESET)
-                    print(Fore.YELLOW + f'{timestamp} 普通福袋的筛选概率已调整至{normal_p}' + Fore.RESET)
+                    # 非免费VIP时段，还原至初始功能
+                    if temp_h * 3600 + temp_m * 60 < 72000 or temp_h * 3600 + temp_m * 60 + temp_s > 79200:
+                        reset_config_if_meets_conditions('当前时间不处于免费VIP时间段，无法临时使用VIP功能:(')
+                        reset_temporary_vip2()
 
-            timestamp2 = datetime.now().strftime("%Y-%m-%d")
+                if pause[0] == 0:
+                    try:
+                        browser_cookies = {
+                            c["name"]: c["value"]
+                            for c in await browser.cookies()
+                        }
+                    except Exception as e:
+                        browser_cookies = {}
 
-            # 处于非常严重的被风控状态，警告
-            if bag_num1_dic.get(timestamp2):
-                temp_p = bag_num3_dic[timestamp2] / bag_num1_dic[timestamp2]
-                if temp_p > 0:
-                    if temp_p < 0.03:
-                        extremely_bad_luck = True
+                    # 检查是否有验证码
+                    captcha_frame = page.frame_locator("[src*='verifycenter/captcha']")
+                    captcha_close_button_element = await captcha_frame.locator("[class*='vc-captcha-close-btn']").all()
+
+                    if captcha_close_button_element:
+                        pause[0] = 1
 
                         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         print(
-                            Fore.RED + f'{timestamp} 当前可能处于非常严重的被风控状态，不建议继续进行抢福袋任务！' + Fore.RESET)
+                            Fore.GREEN + f'{timestamp} 检测到有验证码iframe，程序已自动暂停，请手动完成验证！' + Fore.RESET)
+
+                        need_to_receive_notification = True
+                        notification_title = '检测到有验证码ifame'
+                        notification_detailed_content = '程序已自动暂停，请手动完成验证！'
+
+                    end_time = time.time()
+                    temp_time = end_time - start_time
+                    temp_time = round(temp_time, 2)
+
+                    if balance[0] > 0:
+                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(Fore.GREEN + f'{timestamp} 当前账户余额:{balance[0]}元' + Fore.RESET)
                     else:
-                        extremely_bad_luck = False
+                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(Fore.LIGHTBLUE_EX + f'{timestamp} 当前账户余额:{balance[0]}元' + Fore.RESET)
 
-            # 满足条件时暂停程序
-            if pause_automatically[0] == 1:
-                right_condition = False
-                if temp_time >= set_pause_running_time[0]:
-                    right_condition = True
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    print(Fore.YELLOW + f'{timestamp} 当前程序运行时间:{temp_time}s' + Fore.RESET)
+                    '''
+                    if end_time - start_time > record_time_count * 10:
+                        record_time_count += 1
+                        '''
 
                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     print(
-                        Fore.YELLOW + f'{timestamp} 程序运行时间{temp_time}s≥指定值{set_pause_running_time[0]}s，自动暂停程序' + Fore.RESET)
+                        Fore.GREEN + f'{timestamp} 本次已参与福袋数:' + Fore.LIGHTBLUE_EX + f'{bag_num1}' + Fore.GREEN + '，未中奖福袋数:' + Fore.RED + f'{bag_num2}' + Fore.GREEN + '，中奖福袋数:' + Fore.YELLOW + f'{bag_num3}' + Fore.RESET)
 
-                if temp_today_income <= set_pause_today_income[0]:
-                    right_condition = True
+                    income = final_diamond - initial_diamond
 
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(
-                        Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≤指定值{set_pause_today_income[0]}，自动暂停程序' + Fore.RESET)
+                    if income >= 0:
+                        if today_income[0] >= 0:
+                            print(
+                                Fore.YELLOW + f'{timestamp} 本次钻石收益:+{income}，今日钻石收益:+{today_income[0]}，今日中过的福袋的总收益:+{total_bag_num3_value[0]}，今日中过的钻石红包的总收益:+{total_red_packet_num3_value[0]}, 今日中过的礼物红包的总收益:+{total_red_packet_gift_num3_value[0]}' + Fore.RESET)
+                        else:
+                            print(
+                                Fore.YELLOW + f'{timestamp} 本次钻石收益:+{income}，' + Fore.LIGHTBLUE_EX + f'今日钻石收益:{today_income[0]}，' + Fore.YELLOW + f'今日中过的福袋的总收益:+{total_bag_num3_value[0]}，今日中过的红包的总收益:+{total_red_packet_num3_value[0]}, 今日中过的礼物红包的总收益:+{total_red_packet_gift_num3_value[0]}' + Fore.RESET)
+                    else:
+                        if today_income[0] >= 0:
+                            print(
+                                Fore.LIGHTBLUE_EX + f'{timestamp} 本次钻石收益:{income}，' + Fore.YELLOW + f'今日钻石收益:+{today_income[0]}，今日中过的福袋的总收益:+{total_bag_num3_value[0]}，今日中过的钻石红包的总收益:+{total_red_packet_num3_value[0]}, 今日中过的礼物红包的总收益:+{total_red_packet_gift_num3_value[0]}' + Fore.RESET)
+                        else:
+                            print(
+                                Fore.LIGHTBLUE_EX + f'{timestamp} 本次钻石收益:{income}，今日钻石收益:{today_income[0]}，' + Fore.YELLOW + f'今日中过的福袋的总收益:+{total_bag_num3_value[0]}，今日中过的钻石红包的总收益:+{total_red_packet_num3_value[0]}, 今日中过的礼物红包的总收益:+{total_red_packet_gift_num3_value[0]}' + Fore.RESET)
 
-                if temp_today_income >= set_pause_today_income2[0]:
-                    right_condition = True
+                    if bad_luck:
+                        # 可能被风控的几种情况
+                        at_risk = False
+                        # 本次钻石收益 <= set_risk_income[0] or 今日单账号钻石收益 <= set_risk_today_income[0]
+                        if income <= set_risk_income[0] or temp_today_income <= set_risk_today_income[0]:
+                            at_risk = True
+                        # 中奖福袋数为0的情况下，未中奖福袋数 > 1 / set_get_reward_p[0]
+                        if bag_num3 == 0 and bag_num2 > 1 / set_get_reward_p[0]:
+                            at_risk = True
+                        # 中奖福袋数不为0的情况下，中奖福袋数 / 本次已参与福袋数 < set_get_reward_p[0]
+                        if bag_num3 != 0 and bag_num3 / bag_num1 < set_get_reward_p[0]:
+                            at_risk = True
 
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(
-                        Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≥指定值{set_pause_today_income2[0]}，自动暂停程序' + Fore.RESET)
+                        if not at_risk:
+                            bad_luck = False
 
-                timestamp2 = datetime.now().strftime("%Y-%m-%d")
-                if temp_bag_num1_dic.get(timestamp2):
-                    if temp_bag_num1_dic[timestamp2] >= set_pause_bag_num1[0]:
-                        right_condition = True
+                            base_fan_club_p -= set_raise_fan_club_bag_p[0]
+                            fan_club_p -= set_raise_fan_club_bag_p[0]
 
-                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        print(
-                            Fore.YELLOW + f'{timestamp} 今日参与福袋数{temp_bag_num1_dic[timestamp2]}≥指定值{set_pause_bag_num1[0]}，自动暂停程序' + Fore.RESET)
+                            normal_p = base_normal_p
 
-                if temp_bag_num3_dic.get(timestamp2):
-                    if temp_bag_num3_dic[timestamp2] >= set_pause_bag_num3[0]:
-                        right_condition = True
+                            # time.sleep(0.25)
+                            await asyncio.sleep(0.25)
 
-                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        print(
-                            Fore.YELLOW + f'{timestamp} 今日已中福袋数{temp_bag_num3_dic[timestamp2]}≥指定值{set_pause_bag_num3[0]}，自动暂停程序' + Fore.RESET)
+                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            print(
+                                Fore.GREEN + f'{timestamp} 当前暂时回归正常状态，将降低抢粉丝团福袋的筛选概率，同时提高普通福袋的筛选概率' + Fore.RESET)
+                            print(Fore.YELLOW + f'{timestamp} 粉丝团福袋的筛选概率已调整至{fan_club_p}' + Fore.RESET)
+                            print(Fore.YELLOW + f'{timestamp} 普通福袋的筛选概率已调整至{normal_p}' + Fore.RESET)
 
-                if right_condition:
-                    pause[0] = 1
+                    if not bad_luck:
+                        # 可能被风控的几种情况
+                        at_risk = False
+                        # 本次钻石收益 <= set_risk_income[0] or 今日单账号钻石收益 <= set_risk_today_income[0]
+                        if income <= income <= set_risk_income[0] or temp_today_income <= set_risk_today_income[0]:
+                            at_risk = True
+                        # 中奖福袋数为0的情况下，未中奖福袋数 > 1 / set_get_reward_p[0]
+                        if bag_num3 == 0 and bag_num2 > 1 / set_get_reward_p[0]:
+                            at_risk = True
+                        # 中奖福袋数不为0的情况下，中奖福袋数 / 本次已参与福袋数 < set_get_reward_p[0]
+                        if bag_num3 != 0 and bag_num3 / bag_num1 < set_get_reward_p[0]:
+                            at_risk = True
 
-                    # 自动暂停时重置今日数据
-                    start_time = time.time()
-                    initial_diamond = 0
-                    final_diamond = 0
-                    # today_income[0] = 0
-                    temp_today_income = 0
-                    # bag_num1_dic[timestamp2] = 0
-                    temp_bag_num1_dic[timestamp2] = 0
-                    # bag_num3_dic[timestamp2] = 0
-                    temp_bag_num3_dic[timestamp2] = 0
-                    # real_object_num_dic[timestamp2] = 0
-                    # popularity_ticket_num_dic[timestamp2] = 0
+                        if at_risk:
+                            bad_luck = True
 
-            end_time2 = time.time()
-            if end_time2 - start_time2 > 7200:
-                # 确保当前没有参与福袋or红包的情况下再关闭浏览器
-                if len(working_threads2) == 0 and not have_participated_red_packet:
-                    start_time2 = time.time()
+                            base_fan_club_p += set_raise_fan_club_bag_p[0]
+                            fan_club_p += set_raise_fan_club_bag_p[0]
 
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(
-                        Fore.YELLOW + f'{timestamp} control_driver2协程运行时间太长，自动重启浏览器' + Fore.RESET)
+                            normal_p = base_normal_p * 0.8
 
-                    control_driver2_restart_browser = True
+                            # time.sleep(0.25)
+                            await asyncio.sleep(0.25)
 
-                    break
-
-            # 满足条件时切换账号
-            if is_VIP[0] == 1 or is_temporary_VIP[0] == 1:
-                if need_change_account[0] == 1:
-                    right_condition = False
-                    if temp_time >= set_change_account_running_time[0]:
-                        right_condition = True
-
-                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        print(
-                            Fore.YELLOW + f'{timestamp} 程序运行时间{temp_time}s≥指定值{set_change_account_running_time[0]}s，切换账号' + Fore.RESET)
-
-                    if temp_today_income <= set_change_account_today_income[0]:
-                        right_condition = True
-
-                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        print(
-                            Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≤指定值{set_change_account_today_income[0]}，切换账号' + Fore.RESET)
-
-                    if temp_today_income >= set_change_account_today_income2[0]:
-                        right_condition = True
-
-                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        print(
-                            Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≥指定值{set_change_account_today_income2[0]}，切换账号' + Fore.RESET)
+                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            print(
+                                Fore.RED + f'{timestamp} 当前可能处于被风控状态，将提高抢粉丝团福袋的筛选概率，同时降低普通福袋的筛选概率' + Fore.RESET)
+                            print(Fore.YELLOW + f'{timestamp} 粉丝团福袋的筛选概率已调整至{fan_club_p}' + Fore.RESET)
+                            print(Fore.YELLOW + f'{timestamp} 普通福袋的筛选概率已调整至{normal_p}' + Fore.RESET)
 
                     timestamp2 = datetime.now().strftime("%Y-%m-%d")
-                    if temp_bag_num1_dic.get(timestamp2):
-                        if temp_bag_num1_dic[timestamp2] >= set_change_account_bag_num1[0]:
+
+                    # 处于非常严重的被风控状态，警告
+                    if bag_num1_dic.get(timestamp2):
+                        temp_p = bag_num3_dic[timestamp2] / bag_num1_dic[timestamp2]
+                        if temp_p > 0:
+                            if temp_p < 0.03:
+                                extremely_bad_luck = True
+
+                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                print(
+                                    Fore.RED + f'{timestamp} 当前可能处于非常严重的被风控状态，不建议继续进行抢福袋任务！' + Fore.RESET)
+                            else:
+                                extremely_bad_luck = False
+
+                    # 满足条件时暂停程序
+                    if pause_automatically[0] == 1:
+                        right_condition = False
+                        if temp_time >= set_pause_running_time[0]:
                             right_condition = True
 
                             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             print(
-                                Fore.YELLOW + f'{timestamp} 本次参与福袋数{temp_bag_num1_dic[timestamp2]}≥指定值{set_change_account_bag_num1[0]}，切换账号' + Fore.RESET)
+                                Fore.YELLOW + f'{timestamp} 程序运行时间{temp_time}s≥指定值{set_pause_running_time[0]}s，自动暂停程序' + Fore.RESET)
 
-                    if temp_bag_num3_dic.get(timestamp2):
-                        if temp_bag_num3_dic[timestamp2] >= set_change_account_bag_num3[0]:
+                        if temp_today_income <= set_pause_today_income[0]:
                             right_condition = True
 
                             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             print(
-                                Fore.YELLOW + f'{timestamp} 本次已中福袋数{temp_bag_num3_dic[timestamp2]}≥指定值{set_change_account_bag_num3[0]}，切换账号' + Fore.RESET)
+                                Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≤指定值{set_pause_today_income[0]}，自动暂停程序' + Fore.RESET)
 
-                    # 启动程序时不打开要切换的账号所在的浏览器时才切换
-                    if right_condition and open_account2_browser[0] == 0:
-                        control_driver2_change_account = True
-
-                        break
-
-            error_occur = False
-
-            async with lock:
-                # 清除所有剩余时间小于0/p_time >= 300的网页
-                temp_websites = []
-                for e in eligible_websites:
-                    temp_right_condition = False
-                    if not e.get('red_packet'):
-                        if e['time'] > 0:
-                            temp_right_condition = True
-
-                    if e.get('red_packet'):
-                        if e['time'] > 0:
-                            if e.get('p_time'):
-                                p_time = e['p_time']
-                                if p_time < 300:
-                                    temp_right_condition = True
-                            else:
-                                e['p_time'] = time.time() - e['record_time']
-                                temp_right_condition = True
-
-                    if temp_right_condition:
-                        temp_websites.append(e)
-
-                eligible_websites = temp_websites[:]
-
-                # 有重复的room_id的只保留一个
-                delete_index = {}
-                temp_eligible_websites = eligible_websites[:]
-                for idx1, e1 in enumerate(temp_eligible_websites):
-                    if e1.get('room_id'):
-                        temp_room_id1 = e1['room_id']
-                        index_list = []
-                        for idx2, e2 in enumerate(temp_eligible_websites):
-                            if e2.get('room_id'):
-                                temp_room_id2 = e2['room_id']
-                                if temp_room_id2 == temp_room_id1:
-                                    index_list.append(idx2)
-
-                        if len(index_list) > 1:
-                            temp_index_list = index_list[1:]
-                            for t in temp_index_list:
-                                delete_index[t] = 1
-
-                temp_websites = []
-                temp_eligible_websites = eligible_websites[:]
-                for idx, te in enumerate(temp_eligible_websites):
-                    if idx not in delete_index:
-                        temp_websites.append(te)
-
-                eligible_websites = temp_websites[:]
-
-                # 更新所有符合条件网页福袋的剩余时间
-                for idx, e in enumerate(eligible_websites):
-                    if not e.get('red_packet'):
-                        temp_type = e.get('type')
-                        if temp_type:
-                            if '实物' in temp_type:
-                                e_time = e.get('record_time')
-                                p_time = time.time() - e_time
-                                r_time = e.get('time') - p_time
-                                e['time'] = r_time
-                                e['record_time'] = time.time()
-
-                                # 剩余时间长的实物福袋排最前面，因为是最新检测到有发实物福袋的
-                                # 如果设置了实物福袋，优先参与实物福袋
-                                e['estimate_p'] = 1 - p_time / 10000
-                            else:
-                                e_time = e.get('record_time')
-                                p_time = time.time() - e_time
-                                r_time = e.get('time') - p_time
-                                e['time'] = r_time
-                                e['record_time'] = time.time()
-
-                                bn = e.get('lucky_count')
-
-                                count_down = 600
-                                if e.get('count_down'):
-                                    count_down = e.get('count_down')
-
-                                if not e.get('p2'):
-                                    e['p2'] = -1
-
-                                # 概率发生变化，重新计算最终概率
-                                if e['p'] != e['p2']:
-                                    # 预估的最终概率
-                                    base = math.pow(e['p'] / bn, 1 / (count_down - r_time + 1))
-                                    e['estimate_p'] = bn / base * math.pow(base, count_down)
-
-                                e['p2'] = e['p']
-                        # 此为非使用api找到的直播间
-                        else:
-                            e_time = e.get('record_time')
-                            p_time = time.time() - e_time
-                            r_time = e.get('time') - p_time
-                            e['time'] = r_time
-                            e['record_time'] = time.time()
-
-                            bn = e.get('lucky_count')
-
-                            count_down = 600
-                            if e.get('count_down'):
-                                count_down = e.get('count_down')
-
-                            if not e.get('p2'):
-                                e['p2'] = -1
-
-                            # 概率发生变化，重新计算最终概率
-                            if e['p'] != e['p2']:
-                                # 预估的最终概率
-                                base = math.pow(e['p'] / bn, 1 / (count_down - r_time + 1))
-                                e['estimate_p'] = bn / base * math.pow(base, count_down)
-
-                            e['p2'] = e['p']
-                    else:
-                        e_time = e.get('record_time')
-                        p_time = time.time() - e_time
-                        e['p_time'] = p_time
-
-                        # 剩余时间长的红包排最前面，因为是最新检测到有红包的
-                        e['estimate_p'] = (1 - p_time / 10000) / 1000
-
-            original_stay_in_live_index = -1
-
-            if len(eligible_websites) > 0:
-                # 预测中奖概率最大的排前面
-                async with lock:
-                    eligible_websites.sort(key=lambda x: x["estimate_p"], reverse=True)
-
-                for idx, ew in enumerate(eligible_websites):
-                    if ew['stay'] == 1:
-                        original_stay_in_live_index = idx
-
-                sub_title = eligible_websites[0]['title']
-                pattern = r'([\s\S]*抖音直播间) - 抖音直播'
-                if re.search(pattern, sub_title):
-                    sub_title = re.search(pattern, sub_title).group(1)
-
-                if not eligible_websites[0].get('red_packet'):
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(
-                        Fore.YELLOW + f'{timestamp} 中奖概率最大({sub_title})的福袋的中奖预测概率为{round(eligible_websites[0]['estimate_p'] * 100, 5)}%，剩余时间为{round(eligible_websites[0]['time'], 2)}s' + Fore.RESET)
-                else:
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(
-                        Fore.YELLOW + f'{timestamp} 直播间({sub_title})正在发放红包' + Fore.RESET)
-
-                allowed_to_change_live = False
-
-                # 只有当新的预测概率-原先的预测概率>0.15时才跳转，避免频繁跳转
-                if len(eligible_websites) >= 2:
-                    if original_stay_in_live_index != -1:
-                        if original_stay_in_live_index != 0:
-                            if eligible_websites[0]["estimate_p"] - eligible_websites[original_stay_in_live_index][
-                                "estimate_p"] > 0.15:
-                                allowed_to_change_live = True
-
-                if allowed_to_change_live:
-                    # 在非等待开奖以及等待红包结束的情况下，如果中奖概率最大的直播间发生了变更，直接跳转到新的中奖概率最大的直播间
-                    if original_stay_in_live_index != -1 and not wait_until_draw_end and not have_participated_red_packet:
-                        if original_stay_in_live_index != 0:
-                            eligible_websites[original_stay_in_live_index]['stay'] = 0
+                        if temp_today_income >= set_pause_today_income2[0]:
+                            right_condition = True
 
                             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             print(
-                                Fore.YELLOW + f'{timestamp} 预测福袋中奖概率最大的直播间已变更，将跳转至该直播间' + Fore.RESET)
+                                Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≥指定值{set_pause_today_income2[0]}，自动暂停程序' + Fore.RESET)
 
-            if not is_closing:
-                try:
-                    current_url = page.url
-                except Exception as e:
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(Fore.RED + f'{timestamp} driver2获取当前url失败！' + Fore.RESET)
+                        timestamp2 = datetime.now().strftime("%Y-%m-%d")
+                        if temp_bag_num1_dic.get(timestamp2):
+                            if temp_bag_num1_dic[timestamp2] >= set_pause_bag_num1[0]:
+                                right_condition = True
 
-                    error_occur = True
+                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                print(
+                                    Fore.YELLOW + f'{timestamp} 今日参与福袋数{temp_bag_num1_dic[timestamp2]}≥指定值{set_pause_bag_num1[0]}，自动暂停程序' + Fore.RESET)
 
-            c1 = False
+                        if temp_bag_num3_dic.get(timestamp2):
+                            if temp_bag_num3_dic[timestamp2] >= set_pause_bag_num3[0]:
+                                right_condition = True
 
-            if not is_closing:
-                if not error_occur and len(eligible_websites) > 0:
-                    pattern = r'live.douyin.com/([0-9]+)'
+                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                print(
+                                    Fore.YELLOW + f'{timestamp} 今日已中福袋数{temp_bag_num3_dic[timestamp2]}≥指定值{set_pause_bag_num3[0]}，自动暂停程序' + Fore.RESET)
 
-                    temp_short_id = ''
-                    # temp_url = driver2.current_url
-                    temp_url = page.url
+                        if right_condition:
+                            pause[0] = 1
 
-                    if re.search(pattern, temp_url):
-                        temp_short_id = re.search(pattern, temp_url).group(1)
+                            # 自动暂停时重置今日数据
+                            start_time = time.time()
+                            initial_diamond = 0
+                            final_diamond = 0
+                            # today_income[0] = 0
+                            temp_today_income = 0
+                            # bag_num1_dic[timestamp2] = 0
+                            temp_bag_num1_dic[timestamp2] = 0
+                            # bag_num3_dic[timestamp2] = 0
+                            temp_bag_num3_dic[timestamp2] = 0
+                            # real_object_num_dic[timestamp2] = 0
+                            # popularity_ticket_num_dic[timestamp2] = 0
 
-                    # 有要stay的直播间但是因为某些原因没进入(在别的直播间or不在直播间)，重新尝试进入
-                    if eligible_websites[0]['stay'] == 1 and (
-                            temp_short_id not in eligible_websites[0]['url'] or temp_short_id == ''):
-                        c1 = True
+                    end_time2 = time.time()
+                    if end_time2 - start_time2 > 7200:
+                        # 确保当前没有参与福袋or红包的情况下再关闭浏览器
+                        if len(working_threads2) == 0 and not have_participated_red_packet:
+                            start_time2 = time.time()
 
-                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        print(
-                            f'{timestamp} 意外退出指定直播间，尝试重新进入该直播间')
-
-                        try:
-                            await page.goto(eligible_websites[0]['url'], timeout=20000)
-                        except Exception as e:
                             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+                            print(
+                                Fore.YELLOW + f'{timestamp} control_driver2协程运行时间太长，自动重启浏览器' + Fore.RESET)
 
-                    # 这里不再等待红包结束，保证至少参与一个红包就行
-                    # 有正在参与的剩余时间<30s的红包，不跳转
-                    if 30 <= eligible_websites[0]['time'] < 300 and eligible_websites[0][
-                        'stay'] == 0 and len(working_threads2) == 0 and not red_packet_almost_over:
-                        try:
-                            in_live = False
-                            pattern = r'live.douyin.com/[0-9]+'
-                            # if re.search(pattern, driver2.current_url)
-                            temp_page_url = page.url
-                            if re.search(pattern, temp_page_url):
-                                in_live = True
+                            control_driver2_restart_browser = True
 
-                            # 如果不位于直播间，直接前往指定直播间
-                            if not in_live:
-                                if not eligible_websites[0].get('red_packet'):
-                                    c1 = True
+                            break
+
+                    # 满足条件时切换账号
+                    if is_VIP[0] == 1 or is_temporary_VIP[0] == 1:
+                        if need_change_account[0] == 1:
+                            right_condition = False
+                            if temp_time >= set_change_account_running_time[0]:
+                                right_condition = True
+
+                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                print(
+                                    Fore.YELLOW + f'{timestamp} 程序运行时间{temp_time}s≥指定值{set_change_account_running_time[0]}s，切换账号' + Fore.RESET)
+
+                            if temp_today_income <= set_change_account_today_income[0]:
+                                right_condition = True
+
+                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                print(
+                                    Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≤指定值{set_change_account_today_income[0]}，切换账号' + Fore.RESET)
+
+                            if temp_today_income >= set_change_account_today_income2[0]:
+                                right_condition = True
+
+                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                print(
+                                    Fore.YELLOW + f'{timestamp} 本次钻石收益{temp_today_income}≥指定值{set_change_account_today_income2[0]}，切换账号' + Fore.RESET)
+
+                            timestamp2 = datetime.now().strftime("%Y-%m-%d")
+                            if temp_bag_num1_dic.get(timestamp2):
+                                if temp_bag_num1_dic[timestamp2] >= set_change_account_bag_num1[0]:
+                                    right_condition = True
 
                                     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                                     print(
-                                        f'{timestamp} 当前不位于直播间，检测到有福袋剩余时间<5分钟的直播间，切换至指定直播间')
+                                        Fore.YELLOW + f'{timestamp} 本次参与福袋数{temp_bag_num1_dic[timestamp2]}≥指定值{set_change_account_bag_num1[0]}，切换账号' + Fore.RESET)
 
-                                    # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
-                                    eligible_websites[0]['stay'] = 1
+                            if temp_bag_num3_dic.get(timestamp2):
+                                if temp_bag_num3_dic[timestamp2] >= set_change_account_bag_num3[0]:
+                                    right_condition = True
 
-                                    live_room_changed = True
-                                    try:
-                                        if staying_in_live_task:
-                                            staying_in_live_task.cancel()
+                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    print(
+                                        Fore.YELLOW + f'{timestamp} 本次已中福袋数{temp_bag_num3_dic[timestamp2]}≥指定值{set_change_account_bag_num3[0]}，切换账号' + Fore.RESET)
 
-                                        if staying_in_live_task_record_url in working_threads:
-                                            del working_threads[staying_in_live_task_record_url]
+                            # 启动程序时不打开要切换的账号所在的浏览器时才切换
+                            if right_condition and open_account2_browser[0] == 0:
+                                control_driver2_change_account = True
 
-                                        have_participated_red_packet = False
+                                break
 
-                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                        print(Fore.YELLOW + f'{timestamp} 已切换直播间，取消task_while_staying_in_live_with_playwright任务' + Fore.RESET)
-                                    except Exception as e:
-                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                        print(Fore.RED + f'{timestamp} 取消task_while_staying_in_live_with_playwright失败！' + Fore.RESET)
+                    error_occur = False
 
-                                    try:
-                                        # driver2.get(eligible_websites[0]['url'])
-                                        await page.goto(eligible_websites[0]['url'], timeout=20000)
-                                    except Exception as e:
-                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                        print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+                    async with lock:
+                        # 清除所有剩余时间小于0/p_time >= 300的网页
+                        temp_websites = []
+                        for e in eligible_websites:
+                            temp_right_condition = False
+                            if not e.get('red_packet'):
+                                if e['time'] > 0:
+                                    temp_right_condition = True
 
-                                        # time.sleep(2)
-                                    await asyncio.sleep(2)
-                                if eligible_websites[0].get('red_packet'):
-                                    enter_red_packet_live_time = time.time()
-                                    if enter_red_packet_live_time - last_enter_red_packet_live_time > 300:
-                                        c1 = True
+                            if e.get('red_packet'):
+                                if e['time'] > 0:
+                                    if e.get('p_time'):
+                                        p_time = e['p_time']
+                                        if p_time < 300:
+                                            temp_right_condition = True
+                                    else:
+                                        e['p_time'] = time.time() - e['record_time']
+                                        temp_right_condition = True
 
-                                        last_enter_red_packet_live_time = enter_red_packet_live_time
+                            if temp_right_condition:
+                                temp_websites.append(e)
 
-                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                        print(
-                                            f'{timestamp} 当前不位于直播间，检测到有发放红包的直播间，切换至指定直播间')
+                        eligible_websites = temp_websites[:]
 
-                                        # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
-                                        eligible_websites[0]['stay'] = 1
+                        # 有重复的room_id的只保留一个
+                        delete_index = {}
+                        temp_eligible_websites = eligible_websites[:]
+                        for idx1, e1 in enumerate(temp_eligible_websites):
+                            if e1.get('room_id'):
+                                temp_room_id1 = e1['room_id']
+                                index_list = []
+                                for idx2, e2 in enumerate(temp_eligible_websites):
+                                    if e2.get('room_id'):
+                                        temp_room_id2 = e2['room_id']
+                                        if temp_room_id2 == temp_room_id1:
+                                            index_list.append(idx2)
 
-                                        live_room_changed = True
-                                        try:
-                                            if staying_in_live_task:
-                                                staying_in_live_task.cancel()
+                                if len(index_list) > 1:
+                                    temp_index_list = index_list[1:]
+                                    for t in temp_index_list:
+                                        delete_index[t] = 1
 
-                                            if staying_in_live_task_record_url in working_threads:
-                                                del working_threads[staying_in_live_task_record_url]
+                        temp_websites = []
+                        temp_eligible_websites = eligible_websites[:]
+                        for idx, te in enumerate(temp_eligible_websites):
+                            if idx not in delete_index:
+                                temp_websites.append(te)
 
-                                            have_participated_red_packet = False
+                        eligible_websites = temp_websites[:]
 
-                                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                            print(
-                                                Fore.YELLOW + f'{timestamp} 已切换直播间，取消task_while_staying_in_live_with_playwright任务' + Fore.RESET)
-                                        except Exception as e:
-                                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                            print(
-                                                Fore.RED + f'{timestamp} 取消task_while_staying_in_live_with_playwright失败！' + Fore.RESET)
+                        # 更新所有符合条件网页福袋的剩余时间
+                        for idx, e in enumerate(eligible_websites):
+                            if not e.get('red_packet'):
+                                temp_type = e.get('type')
+                                if temp_type:
+                                    if '实物' in temp_type:
+                                        e_time = e.get('record_time')
+                                        p_time = time.time() - e_time
+                                        r_time = e.get('time') - p_time
+                                        e['time'] = r_time
+                                        e['record_time'] = time.time()
 
-                                        try:
-                                            # driver2.get(eligible_websites[0]['url'])
-                                            await page.goto(eligible_websites[0]['url'], timeout=20000)
-                                        except Exception as e:
-                                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                            print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+                                        # 剩余时间长的实物福袋排最前面，因为是最新检测到有发实物福袋的
+                                        # 如果设置了实物福袋，优先参与实物福袋
+                                        e['estimate_p'] = 1 - p_time / 10000
+                                    else:
+                                        e_time = e.get('record_time')
+                                        p_time = time.time() - e_time
+                                        r_time = e.get('time') - p_time
+                                        e['time'] = r_time
+                                        e['record_time'] = time.time()
 
-                                            # time.sleep(2)
-                                        await asyncio.sleep(2)
+                                        bn = e.get('lucky_count')
 
+                                        count_down = 600
+                                        if e.get('count_down'):
+                                            count_down = e.get('count_down')
+
+                                        if not e.get('p2'):
+                                            e['p2'] = -1
+
+                                        # 概率发生变化，重新计算最终概率
+                                        if e['p'] != e['p2']:
+                                            # 预估的最终概率
+                                            base = math.pow(e['p'] / bn, 1 / (count_down - r_time + 1))
+                                            e['estimate_p'] = bn / base * math.pow(base, count_down)
+
+                                        e['p2'] = e['p']
+                                # 此为非使用api找到的直播间
+                                else:
+                                    e_time = e.get('record_time')
+                                    p_time = time.time() - e_time
+                                    r_time = e.get('time') - p_time
+                                    e['time'] = r_time
+                                    e['record_time'] = time.time()
+
+                                    bn = e.get('lucky_count')
+
+                                    count_down = 600
+                                    if e.get('count_down'):
+                                        count_down = e.get('count_down')
+
+                                    if not e.get('p2'):
+                                        e['p2'] = -1
+
+                                    # 概率发生变化，重新计算最终概率
+                                    if e['p'] != e['p2']:
+                                        # 预估的最终概率
+                                        base = math.pow(e['p'] / bn, 1 / (count_down - r_time + 1))
+                                        e['estimate_p'] = bn / base * math.pow(base, count_down)
+
+                                    e['p2'] = e['p']
+                            else:
+                                e_time = e.get('record_time')
+                                p_time = time.time() - e_time
+                                e['p_time'] = p_time
+
+                                # 剩余时间长的红包排最前面，因为是最新检测到有红包的
+                                e['estimate_p'] = (1 - p_time / 10000) / 1000
+
+                    original_stay_in_live_index = -1
+
+                    if len(eligible_websites) > 0:
+                        # 预测中奖概率最大的排前面
+                        async with lock:
+                            eligible_websites.sort(key=lambda x: x["estimate_p"], reverse=True)
+
+                        for idx, ew in enumerate(eligible_websites):
+                            if ew['stay'] == 1:
+                                original_stay_in_live_index = idx
+
+                        sub_title = eligible_websites[0]['title']
+                        pattern = r'([\s\S]*抖音直播间) - 抖音直播'
+                        if re.search(pattern, sub_title):
+                            sub_title = re.search(pattern, sub_title).group(1)
+
+                        if not eligible_websites[0].get('red_packet'):
+                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            print(
+                                Fore.YELLOW + f'{timestamp} 中奖概率最大({sub_title})的福袋的中奖预测概率为{round(eligible_websites[0]['estimate_p'] * 100, 5)}%，剩余时间为{round(eligible_websites[0]['time'], 2)}s' + Fore.RESET)
+                        else:
+                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            print(
+                                Fore.YELLOW + f'{timestamp} 直播间({sub_title})正在发放红包' + Fore.RESET)
+
+                        allowed_to_change_live = False
+
+                        # 只有当新的预测概率-原先的预测概率>0.15时才跳转，避免频繁跳转
+                        if len(eligible_websites) >= 2:
+                            if original_stay_in_live_index != -1:
+                                if original_stay_in_live_index != 0:
+                                    if eligible_websites[0]["estimate_p"] - \
+                                            eligible_websites[original_stay_in_live_index][
+                                                "estimate_p"] > 0.15:
+                                        allowed_to_change_live = True
+
+                        if allowed_to_change_live:
+                            # 在非等待开奖以及等待红包结束的情况下，如果中奖概率最大的直播间发生了变更，直接跳转到新的中奖概率最大的直播间
+                            if original_stay_in_live_index != -1 and not wait_until_draw_end and not have_participated_red_packet:
+                                if original_stay_in_live_index != 0:
+                                    eligible_websites[original_stay_in_live_index]['stay'] = 0
+
+                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    print(
+                                        Fore.YELLOW + f'{timestamp} 预测福袋中奖概率最大的直播间已变更，将跳转至该直播间' + Fore.RESET)
+
+                    if not is_closing:
+                        try:
+                            current_url = page.url
                         except Exception as e:
                             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            print(Fore.RED + f'{timestamp} 前往指定直播间时出错！' + Fore.RESET)
+                            print(Fore.RED + f'{timestamp} driver2获取当前url失败！' + Fore.RESET)
 
-                        try:
-                            in_live = False
-                            pattern = r'live.douyin.com/[0-9]+'
-                            # if re.search(pattern, driver2.current_url):
-                            temp_page_url = page.url
-                            if re.search(pattern, temp_page_url):
-                                in_live = True
+                            error_occur = True
 
-                            if in_live:
-                                if not eligible_websites[0].get('red_packet'):
-                                    c1 = True
+                    c1 = False
 
-                                    # 当前正处于别的直播间，切换
-                                    # if eligible_websites[0]['url'] != driver2.current_url:
+                    if not is_closing:
+                        if not error_occur and len(eligible_websites) > 0:
+                            pattern = r'live.douyin.com/([0-9]+)'
+
+                            temp_short_id = ''
+                            # temp_url = driver2.current_url
+                            temp_url = page.url
+
+                            if re.search(pattern, temp_url):
+                                temp_short_id = re.search(pattern, temp_url).group(1)
+
+                            # 有要stay的直播间但是因为某些原因没进入(在别的直播间or不在直播间)，重新尝试进入
+                            if eligible_websites[0]['stay'] == 1 and (
+                                    temp_short_id not in eligible_websites[0]['url'] or temp_short_id == ''):
+                                c1 = True
+
+                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                print(
+                                    f'{timestamp} 意外退出指定直播间，尝试重新进入该直播间')
+
+                                try:
+                                    await page.goto(eligible_websites[0]['url'], timeout=20000)
+                                except Exception as e:
+                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+
+                            # 这里不再等待红包结束，保证至少参与一个红包就行
+                            # 有正在参与的剩余时间<30s的红包，不跳转
+                            if 30 <= eligible_websites[0]['time'] < 300 and eligible_websites[0][
+                                'stay'] == 0 and len(working_threads2) == 0 and not red_packet_almost_over:
+                                try:
+                                    in_live = False
+                                    pattern = r'live.douyin.com/[0-9]+'
+                                    # if re.search(pattern, driver2.current_url)
                                     temp_page_url = page.url
-                                    if eligible_websites[0]['url'] != temp_page_url:
-                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                        print(
-                                            f'{timestamp} 当前正处于别的直播间，检测到有福袋剩余时间<5分钟的直播间，切换至指定直播间')
+                                    if re.search(pattern, temp_page_url):
+                                        in_live = True
 
-                                        # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
-                                        eligible_websites[0]['stay'] = 1
-
-                                        live_room_changed = True
-                                        try:
-                                            if staying_in_live_task:
-                                                staying_in_live_task.cancel()
-
-                                            if staying_in_live_task_record_url in working_threads:
-                                                del working_threads[staying_in_live_task_record_url]
-
-                                            have_participated_red_packet = False
+                                    # 如果不位于直播间，直接前往指定直播间
+                                    if not in_live:
+                                        if not eligible_websites[0].get('red_packet'):
+                                            c1 = True
 
                                             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                                             print(
-                                                Fore.YELLOW + f'{timestamp} 已切换直播间，取消task_while_staying_in_live_with_playwright任务' + Fore.RESET)
-                                        except Exception as e:
-                                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                            print(
-                                                Fore.RED + f'{timestamp} 取消task_while_staying_in_live_with_playwright失败！' + Fore.RESET)
-
-                                        try:
-                                            # driver2.get(eligible_websites[0]['url'])
-                                            await page.goto(eligible_websites[0]['url'], timeout=20000)
-                                        except Exception as e:
-                                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                            print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
-                                    # 如果正处于当前直播间，不关闭
-                                    else:
-                                        # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
-                                        eligible_websites[0]['stay'] = 1
-
-                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                        print(
-                                            f'{timestamp} 已位于指定直播间，不执行自动关闭')
-                                if eligible_websites[0].get('red_packet'):
-                                    enter_red_packet_live_time = time.time()
-                                    if enter_red_packet_live_time - last_enter_red_packet_live_time > 300:
-                                        c1 = True
-
-                                        last_enter_red_packet_live_time = enter_red_packet_live_time
-
-                                        # 当前正处于别的直播间，切换
-                                        # if eligible_websites[0]['url'] != driver2.current_url:
-                                        temp_page_url = page.url
-                                        if eligible_websites[0]['url'] != temp_page_url:
-                                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                            print(
-                                                f'{timestamp} 当前正处于别的直播间，检测到有发放红包的直播间，切换至指定直播间')
+                                                f'{timestamp} 当前不位于直播间，检测到有福袋剩余时间<5分钟的直播间，切换至指定直播间')
 
                                             # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
                                             eligible_websites[0]['stay'] = 1
@@ -1851,218 +1727,363 @@ async def control_driver2_with_playwright(browser):
                                             except Exception as e:
                                                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                                                 print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
-                                        # 如果正处于当前直播间，不关闭
-                                        else:
-                                            # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
-                                            eligible_websites[0]['stay'] = 1
 
-                                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                            print(
-                                                f'{timestamp} 已位于指定直播间，不执行自动关闭')
-                        except Exception as e:
+                                                # time.sleep(2)
+                                            await asyncio.sleep(2)
+                                        if eligible_websites[0].get('red_packet'):
+                                            enter_red_packet_live_time = time.time()
+                                            if enter_red_packet_live_time - last_enter_red_packet_live_time > 300:
+                                                c1 = True
+
+                                                last_enter_red_packet_live_time = enter_red_packet_live_time
+
+                                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                print(
+                                                    f'{timestamp} 当前不位于直播间，检测到有发放红包的直播间，切换至指定直播间')
+
+                                                # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
+                                                eligible_websites[0]['stay'] = 1
+
+                                                live_room_changed = True
+                                                try:
+                                                    if staying_in_live_task:
+                                                        staying_in_live_task.cancel()
+
+                                                    if staying_in_live_task_record_url in working_threads:
+                                                        del working_threads[staying_in_live_task_record_url]
+
+                                                    have_participated_red_packet = False
+
+                                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                    print(
+                                                        Fore.YELLOW + f'{timestamp} 已切换直播间，取消task_while_staying_in_live_with_playwright任务' + Fore.RESET)
+                                                except Exception as e:
+                                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                    print(
+                                                        Fore.RED + f'{timestamp} 取消task_while_staying_in_live_with_playwright失败！' + Fore.RESET)
+
+                                                try:
+                                                    # driver2.get(eligible_websites[0]['url'])
+                                                    await page.goto(eligible_websites[0]['url'], timeout=20000)
+                                                except Exception as e:
+                                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                    print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+
+                                                    # time.sleep(2)
+                                                await asyncio.sleep(2)
+
+                                except Exception as e:
+                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    print(Fore.RED + f'{timestamp} 前往指定直播间时出错！' + Fore.RESET)
+
+                                try:
+                                    in_live = False
+                                    pattern = r'live.douyin.com/[0-9]+'
+                                    # if re.search(pattern, driver2.current_url):
+                                    temp_page_url = page.url
+                                    if re.search(pattern, temp_page_url):
+                                        in_live = True
+
+                                    if in_live:
+                                        if not eligible_websites[0].get('red_packet'):
+                                            c1 = True
+
+                                            # 当前正处于别的直播间，切换
+                                            # if eligible_websites[0]['url'] != driver2.current_url:
+                                            temp_page_url = page.url
+                                            if eligible_websites[0]['url'] != temp_page_url:
+                                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                print(
+                                                    f'{timestamp} 当前正处于别的直播间，检测到有福袋剩余时间<5分钟的直播间，切换至指定直播间')
+
+                                                # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
+                                                eligible_websites[0]['stay'] = 1
+
+                                                live_room_changed = True
+                                                try:
+                                                    if staying_in_live_task:
+                                                        staying_in_live_task.cancel()
+
+                                                    if staying_in_live_task_record_url in working_threads:
+                                                        del working_threads[staying_in_live_task_record_url]
+
+                                                    have_participated_red_packet = False
+
+                                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                    print(
+                                                        Fore.YELLOW + f'{timestamp} 已切换直播间，取消task_while_staying_in_live_with_playwright任务' + Fore.RESET)
+                                                except Exception as e:
+                                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                    print(
+                                                        Fore.RED + f'{timestamp} 取消task_while_staying_in_live_with_playwright失败！' + Fore.RESET)
+
+                                                try:
+                                                    # driver2.get(eligible_websites[0]['url'])
+                                                    await page.goto(eligible_websites[0]['url'], timeout=20000)
+                                                except Exception as e:
+                                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                    print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+                                            # 如果正处于当前直播间，不关闭
+                                            else:
+                                                # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
+                                                eligible_websites[0]['stay'] = 1
+
+                                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                print(
+                                                    f'{timestamp} 已位于指定直播间，不执行自动关闭')
+                                        if eligible_websites[0].get('red_packet'):
+                                            enter_red_packet_live_time = time.time()
+                                            if enter_red_packet_live_time - last_enter_red_packet_live_time > 300:
+                                                c1 = True
+
+                                                last_enter_red_packet_live_time = enter_red_packet_live_time
+
+                                                # 当前正处于别的直播间，切换
+                                                # if eligible_websites[0]['url'] != driver2.current_url:
+                                                temp_page_url = page.url
+                                                if eligible_websites[0]['url'] != temp_page_url:
+                                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                    print(
+                                                        f'{timestamp} 当前正处于别的直播间，检测到有发放红包的直播间，切换至指定直播间')
+
+                                                    # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
+                                                    eligible_websites[0]['stay'] = 1
+
+                                                    live_room_changed = True
+                                                    try:
+                                                        if staying_in_live_task:
+                                                            staying_in_live_task.cancel()
+
+                                                        if staying_in_live_task_record_url in working_threads:
+                                                            del working_threads[staying_in_live_task_record_url]
+
+                                                        have_participated_red_packet = False
+
+                                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                        print(
+                                                            Fore.YELLOW + f'{timestamp} 已切换直播间，取消task_while_staying_in_live_with_playwright任务' + Fore.RESET)
+                                                    except Exception as e:
+                                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                        print(
+                                                            Fore.RED + f'{timestamp} 取消task_while_staying_in_live_with_playwright失败！' + Fore.RESET)
+
+                                                    try:
+                                                        # driver2.get(eligible_websites[0]['url'])
+                                                        await page.goto(eligible_websites[0]['url'], timeout=20000)
+                                                    except Exception as e:
+                                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                        print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+                                                # 如果正处于当前直播间，不关闭
+                                                else:
+                                                    # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
+                                                    eligible_websites[0]['stay'] = 1
+
+                                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                    print(
+                                                        f'{timestamp} 已位于指定直播间，不执行自动关闭')
+                                except Exception as e:
+                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    print(
+                                        Fore.RED + f'{timestamp} 切换直播间时出错！' + Fore.RESET)
+
+                    p = f"{relative_path}/eligible_websites.json"
+
+                    with open(p, 'w',
+                              encoding='utf-8') as temp_f:
+                        # indent=1 每个层级缩进1个空格
+                        temp_f.write(json.dumps(eligible_websites, indent=1,
+                                                ensure_ascii=False))
+
+                    if not is_closing:
+                        if c1 and len(working_threads2) == 0:
+                            k1 = False
+                            k2 = False
+                            k3 = False
+                            k4 = False
+                            no_k = False
+
+                            for i in range(5):
+                                try:
+                                    if k1 or k2 or k3 or k4:
+                                        break
+
+                                    # time.sleep(2)
+                                    await asyncio.sleep(2)
+
+                                    '''
+                                    e1 = driver2.find_elements(By.CLASS_NAME,
+                                                               'UxWMHF9c')
+                                    '''
+
+                                    e1 = await page.locator("[class='UxWMHF9c']").all()
+
+                                    if e1:
+                                        k1 = True
+
+                                    '''
+                                    # 在线观众数量
+                                    e2 = driver2.find_elements(By.CLASS_NAME,
+                                                               'ClV317pr')
+                                    '''
+                                    e2 = await page.locator("[class='ClV317pr']").all()
+
+                                    if e2:
+                                        k2 = True
+
+                                    '''
+                                    e3 = driver2.find_elements(By.CLASS_NAME,
+                                                               'pnW5bGAA')
+                                    '''
+
+                                    e3 = await page.locator("[class='pnW5bGAA']").all()
+                                    if e3:
+                                        k3 = True
+
+                                    '''
+                                    e4 = driver2.find_elements(By.CLASS_NAME,
+                                                               'dfUO7idl')
+                                    '''
+
+                                    e4 = await page.locator("[class='dfUO7idl']").all()
+                                    if e4:
+                                        k4 = True
+
+                                    if not e1 and not e2 and not e3 and not e4:
+                                        no_k = True
+                                except Exception as e:
+                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    print(
+                                        Fore.RED + f'{timestamp} 查找关键元素失败！' + Fore.RESET)
+
+                                    # driver2.refresh()
+
+                            key_element_type = -1
+
+                            if k1:
+                                key_element_type = 1
+                            if k2:
+                                key_element_type = 2
+                            if k3:
+                                key_element_type = 3
+                            if k4:
+                                key_element_type = 4
+                            if no_k:
+                                key_element_type = 404
+
+                            if 'red_packet' in eligible_websites[0]:
+                                key_element_type = 888
+
+                            unsupported_live_type = False
+
+                            if key_element_type == 404:
+                                try:
+                                    # 检查一下是不是不支持的直播类型
+                                    '''
+                                    if driver2.find_elements(By.CLASS_NAME,
+                                                             'mjogM52Q'):
+                                    '''
+                                    if await page.locator("[class='mjogM52Q']").all():
+                                        unsupported_live_type = True
+
+                                except Exception as e:
+                                    pass
+
                             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                             print(
-                                Fore.RED + f'{timestamp} 切换直播间时出错！' + Fore.RESET)
+                                Fore.YELLOW + f'{timestamp} 获取到的key_element_type:{key_element_type}' + Fore.RESET)
 
-            p = f"{relative_path}/eligible_websites.json"
+                            if unsupported_live_type:
+                                eligible_websites[0]['time'] = -100
 
-            with open(p, 'w',
-                      encoding='utf-8') as temp_f:
-                # indent=1 每个层级缩进1个空格
-                temp_f.write(json.dumps(eligible_websites, indent=1,
-                                        ensure_ascii=False))
+                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                print(
+                                    Fore.RED + f'{timestamp} 不支持的直播间类型，直接跳过！' + Fore.RESET)
+                            else:
+                                try:
+                                    if len(working_threads2) == 0:
+                                        # temp_url = driver2.current_url
+                                        temp_url = page.url
 
-            if not is_closing:
-                if c1 and len(working_threads2) == 0:
-                    k1 = False
-                    k2 = False
-                    k3 = False
-                    k4 = False
-                    no_k = False
+                                        '''
+                                        dc = threading.Thread(target=delay_check, args=(key_element_type,))
+                                        dc.start()
+                                        '''
 
-                    for i in range(5):
-                        try:
-                            if k1 or k2 or k3 or k4:
-                                break
+                                        asyncio.create_task(delay_check_with_playwright(page, key_element_type))
 
-                            # time.sleep(2)
-                            await asyncio.sleep(2)
+                                        working_threads2[temp_url] = 1
+                                except Exception as e:
+                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                    print(
+                                        Fore.RED + f'{timestamp} 开启delay_check_with_playwright协程失败！' + Fore.RESET)
 
-                            '''
-                            e1 = driver2.find_elements(By.CLASS_NAME,
-                                                       'UxWMHF9c')
-                            '''
+                # time.sleep(random.uniform(5, 10))
+                await asyncio.sleep(random.uniform(5, 10))
 
-                            e1 = await page.locator("[class='UxWMHF9c']").all()
+                count_from_control_driver2_thread += 1
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                # 有时候eligible_websites会直接为空，需要重置eligible_websites
+                eligible_websites = []
 
-                            if e1:
-                                k1 = True
+                control_driver2_restart_browser = True
 
-                            '''
-                            # 在线观众数量
-                            e2 = driver2.find_elements(By.CLASS_NAME,
-                                                       'ClV317pr')
-                            '''
-                            e2 = await page.locator("[class='ClV317pr']").all()
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                print(
+                    Fore.RED + f'{timestamp} control_driver2_with_playwright出现了未知错误！{e}' + Fore.RESET)
 
-                            if e2:
-                                k2 = True
+                break
 
-                            '''
-                            e3 = driver2.find_elements(By.CLASS_NAME,
-                                                       'pnW5bGAA')
-                            '''
+        if control_driver2_change_account:
+            timestamp2 = datetime.now().strftime("%Y-%m-%d")
 
-                            e3 = await page.locator("[class='pnW5bGAA']").all()
-                            if e3:
-                                k3 = True
+            # 切换账号时重置今日数据
+            start_time = time.time()
+            initial_diamond = 0
+            final_diamond = 0
+            # today_income[0] = 0
+            temp_today_income = 0
+            # bag_num1_dic[timestamp2] = 0
+            temp_bag_num1_dic[timestamp2] = 0
+            # bag_num3_dic[timestamp2] = 0
+            temp_bag_num3_dic[timestamp2] = 0
+            # real_object_num_dic[timestamp2] = 0
+            # popularity_ticket_num_dic[timestamp2] = 0
 
-                            '''
-                            e4 = driver2.find_elements(By.CLASS_NAME,
-                                                       'dfUO7idl')
-                            '''
+            current_account_index += 1
+            if current_account_index > 1:
+                current_account_index = 0
 
-                            e4 = await page.locator("[class='dfUO7idl']").all()
-                            if e4:
-                                k4 = True
+            '''
+            if current_account_index == 0:
+                change_account(f'{relative_path}/user/data/dir2')
+            if current_account_index == 1:
+                change_account(f'{relative_path}/user/data/account2')
+            '''
 
-                            if not e1 and not e2 and not e3 and not e4:
-                                no_k = True
-                        except Exception as e:
-                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            print(
-                                Fore.RED + f'{timestamp} 查找关键元素失败！' + Fore.RESET)
+            # 切换账号时重置这些变量
+            wait_until_draw_end = False
+            have_participated_red_packet = False
+            working_threads2 = {}
 
-                            # driver2.refresh()
+            if current_account_index == 0:
+                save_google_chrome_dir = f'{relative_path}/user/playwright_data/dir2'
+            if current_account_index == 1:
+                save_google_chrome_dir = f'{relative_path}/user/playwright_data/account2'
 
-                    key_element_type = -1
-
-                    if k1:
-                        key_element_type = 1
-                    if k2:
-                        key_element_type = 2
-                    if k3:
-                        key_element_type = 3
-                    if k4:
-                        key_element_type = 4
-                    if no_k:
-                        key_element_type = 404
-
-                    if 'red_packet' in eligible_websites[0]:
-                        key_element_type = 888
-
-                    unsupported_live_type = False
-
-                    if key_element_type == 404:
-                        try:
-                            # 检查一下是不是不支持的直播类型
-                            '''
-                            if driver2.find_elements(By.CLASS_NAME,
-                                                     'mjogM52Q'):
-                            '''
-                            if await page.locator("[class='mjogM52Q']").all():
-                                unsupported_live_type = True
-
-                        except Exception as e:
-                            pass
-
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    print(
-                        Fore.YELLOW + f'{timestamp} 获取到的key_element_type:{key_element_type}' + Fore.RESET)
-
-                    if unsupported_live_type:
-                        eligible_websites[0]['time'] = -100
-
-                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        print(
-                            Fore.RED + f'{timestamp} 不支持的直播间类型，直接跳过！' + Fore.RESET)
-                    else:
-                        try:
-                            if len(working_threads2) == 0:
-                                # temp_url = driver2.current_url
-                                temp_url = page.url
-
-                                '''
-                                dc = threading.Thread(target=delay_check, args=(key_element_type,))
-                                dc.start()
-                                '''
-
-                                asyncio.create_task(delay_check_with_playwright(page, key_element_type))
-
-                                working_threads2[temp_url] = 1
-                        except Exception as e:
-                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                            print(
-                                Fore.RED + f'{timestamp} 开启delay_check线程失败！' + Fore.RESET)
-
-        # time.sleep(random.uniform(5, 10))
-        await asyncio.sleep(random.uniform(5, 10))
-
-        count_from_control_driver2_thread += 1
-
-    if control_driver2_change_account:
-        timestamp2 = datetime.now().strftime("%Y-%m-%d")
-
-        # 切换账号时重置今日数据
-        start_time = time.time()
-        initial_diamond = 0
-        final_diamond = 0
-        # today_income[0] = 0
-        temp_today_income = 0
-        # bag_num1_dic[timestamp2] = 0
-        temp_bag_num1_dic[timestamp2] = 0
-        # bag_num3_dic[timestamp2] = 0
-        temp_bag_num3_dic[timestamp2] = 0
-        # real_object_num_dic[timestamp2] = 0
-        # popularity_ticket_num_dic[timestamp2] = 0
-
-        current_account_index += 1
-        if current_account_index > 1:
-            current_account_index = 0
-
-        '''
-        if current_account_index == 0:
-            change_account(f'{relative_path}/user/data/dir2')
-        if current_account_index == 1:
-            change_account(f'{relative_path}/user/data/account2')
-        '''
-
-        # 切换账号时重置这些变量
-        wait_until_draw_end = False
-        have_participated_red_packet = False
-        working_threads2 = {}
-
-        if current_account_index == 0:
-            save_google_chrome_dir = f'{relative_path}/user/playwright_data/dir2'
-        if current_account_index == 1:
-            save_google_chrome_dir = f'{relative_path}/user/playwright_data/account2'
-
-        # driver2.quit()
-        await browser.close()
-
-    if control_driver2_restart_browser:
-        # 重启浏览器时重置这些变量
-        wait_until_draw_end = False
-        # have_participated_red_packet = False
-        # working_threads2 = {}
-
-        try:
-            await browser.close()
-        except Exception as e:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            print(
-                Fore.RED + f'{timestamp} 关闭浏览器失败！' + Fore.RESET)
+        if control_driver2_restart_browser:
+            # 重启浏览器时重置这些变量
+            wait_until_draw_end = False
+            # 出现了未知错误要重置的变量
+            have_participated_red_packet = False
+            working_threads2 = {}
 
 async def search_with_playwright():
     # 隐藏的代码块
 
 if __name__ == "__main__":
-    # 关键！！设置LockSetForegroundWindow的值为1使其它程序无法调用SetForegroundWindow方法
-    # 这样做是为了防止Selenium频繁将浏览器窗口放在最前面以及占用窗口焦点
-    # 禁用了SetForegroundWindow方法也不会对Selenium产生影响，因为这和在PyCharm里运行的效果是一样的
-    ctypes.windll.user32.LockSetForegroundWindow(1)
-
-    # 设置临时的系统变量，以正常运行Microsoft Edge WebDriver
+    # 设置临时的系统变量
     os.environ['Path'] = os.environ.get('path') + relative_path
 
     # 初始化record中的方法
@@ -2261,6 +2282,7 @@ if __name__ == "__main__":
                 if bag_num1_dic[timestamp2] != 0:
                     notification_detailed_content = (
                             f'{time.time()}\n'
+                            + f'账户余额: {balance[0]}元\n'
                             + f'今日总收益: {temp_t}{today_income[0]}\n'
                             + f'今日参与的福袋数: {bag_num1_dic[timestamp2]}\n'
                             + f'今日中奖率: {bag_num3_dic[timestamp2] / bag_num1_dic[timestamp2]}\n'
@@ -2273,6 +2295,7 @@ if __name__ == "__main__":
                 else:
                     notification_detailed_content = (
                             f'{time.time()}\n'
+                            + f'账户余额: {balance[0]}元\n'
                             + f'今日总收益: {temp_t}{today_income[0]}\n'
                             + f'今日参与的福袋数: {bag_num1_dic[timestamp2]}\n'
                             + f'今日中奖率: 0.00'
@@ -2294,8 +2317,7 @@ if __name__ == "__main__":
             task2.start()
 
             save_google_chrome_dir = f'{relative_path}/user/playwright_data/dir2'
-            asyncio.run(main(f'{relative_path}/user/playwright_data/dir2'))
-
+            asyncio.run(main())
         else:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             print(Fore.RED + f'{timestamp} 获取关键数据失败，请重启程序！' + Fore.RESET)
