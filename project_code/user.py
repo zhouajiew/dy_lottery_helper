@@ -7,6 +7,8 @@ import time
 import pymysql
 import socketio
 
+import ctypes
+
 from datetime import datetime
 from colorama import Fore,init
 
@@ -14,10 +16,8 @@ from global_v import *
 
 sio = socketio.AsyncClient()
 
-username = ''
 password = ''
 vip_time = -1
-balance = 0
 
 # 获取当前文件所在的目录
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -32,7 +32,7 @@ def read_json_file(file_path):
         return d
 
 # 还原成默认配置
-def reset_temporary_vip():
+def reset_config_if_meets_conditions(warn_text):
     is_temporary_VIP[0] = False
 
     set_normal_p[0] = 0.1
@@ -67,17 +67,14 @@ def reset_temporary_vip():
     set_max_count_popularity_ticket_red_packet[0] = 0
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(Fore.RED + f'{timestamp} 当前时间不处于免费VIP时间段，无法临时使用VIP功能:(' + Fore.RESET)
+    print(Fore.RED + f'{timestamp} {warn_text}' + Fore.RESET)
 
 async def main():
-    # 隐藏的连接到服务器的代码
-    await sio.wait()
+    # 连接服务器的代码块
 
 # 查看当前版本
 @sio.on('get_program_version')
 async def get_program_version(data):
-    global username
-
     current_program_version = '4.0.3'
 
     if data != current_program_version:
@@ -90,7 +87,7 @@ async def get_program_version(data):
             Fore.GREEN + f'\n{timestamp} 当前程序已经是最新版本的程序:D\n' + Fore.RESET)
 
     await asyncio.sleep(2)
-    await sio.emit('select', username)
+    await sio.emit('select', username[0])
 
 @sio.event
 async def connect():
@@ -107,16 +104,11 @@ async def disconnect():
 
 @sio.on('no_result')
 async def create_account(data):
-    global username
     global password
     global vip_time
-    global balance
 
-    username = ''
-    password = ''
-
-    if username != 'default':
-        if len(username) < 3:
+    if username[0] != 'default':
+        if len(username[0]) < 3:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             print(Fore.RED + f'{timestamp} 账号长度太短，长度至少要大于等于3位！' + Fore.RESET)
         else:
@@ -127,17 +119,15 @@ async def create_account(data):
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 print(Fore.RED + f'{timestamp} 用户不存在，创建用户' + Fore.RESET)
 
-                await sio.emit('insert', [{'username':username, 'password':password, 'vip_time':time.time()}])
+                await sio.emit('insert', [{'username':username[0], 'password':password, 'vip_time':time.time()}])
 
     await asyncio.sleep(2)
     await sio.disconnect()
 
 @sio.on('get_user_info')
 async def get_user_info(data):
-    global username
     global password
     global vip_time
-    global balance
 
     temp_set_normal_p = 0.1
     temp_set_fan_club_p = 0.2
@@ -222,6 +212,9 @@ async def get_user_info(data):
 
     temp_password = data[0].get('password')
     vip_time = data[0].get('vip_time')
+    balance[0] = data[0].get('balance')
+
+    VIP_expire_time[0] = vip_time
 
     if password != temp_password:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -235,14 +228,23 @@ async def get_user_info(data):
         m = int((remaining_time - d * 60 * 60 * 24 - h * 60 * 60) / 60)
         s = int(remaining_time - d * 60 * 60 * 24 - h * 60 * 60 - m * 60)
 
-        if remaining_time > 0:
+        if remaining_time > 0 or balance[0] > 0:
             is_VIP[0] = 1
             # 是VIP的话要取消临时VIP！
             is_temporary_VIP[0] = 0
 
+            if remaining_time > 0:
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                print(
+                    Fore.GREEN + f'{timestamp} 当前用户的VIP剩余时间:{d}天{h}小时{m}分钟{s}秒' + Fore.RESET)
+            else:
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                print(
+                    Fore.GREEN + f'{timestamp} 当前用户的VIP剩余时间:{0}天{0}小时{0}分钟{0}秒' + Fore.RESET)
+
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             print(
-                Fore.GREEN + f'{timestamp} 当前用户的VIP剩余时间:{d}天{h}小时{m}分钟{s}秒' + Fore.RESET)
+                Fore.GREEN + f'{timestamp} 当前用户的账户余额:{balance[0]}元' + Fore.RESET)
 
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             print(
@@ -287,7 +289,7 @@ async def get_user_info(data):
         if temp_max_fan_club_p is None:
             temp_max_fan_club_p = 0.5
         if temp_max_real_object_p is None:
-            temp_max_real_object_p[0] = 0.01
+            temp_max_real_object_p = 0.01
 
         try:
             temp_idx = -1
@@ -328,7 +330,7 @@ async def get_user_info(data):
         if temp_set_get_reward_p is None:
             temp_set_get_reward_p = 0.1
         if temp_set_raise_fan_club_bag_p is None:
-            temp_set_raise_fan_club_bag_p[0] = 0.1
+            temp_set_raise_fan_club_bag_p = 0.1
 
         try:
             temp_idx = -1
@@ -523,7 +525,7 @@ async def get_user_info(data):
 
     if is_VIP[0] == 1 or is_temporary_VIP[0] == 1:
         data = [{
-            'username': username,
+            'username': username[0],
             'password': password
         },
             {
@@ -597,7 +599,7 @@ async def get_user_info(data):
         return original_data
     if is_VIP[0] == 0 and is_temporary_VIP[0] == 0:
         data = [{
-            'username': username,
+            'username': username[0],
             'password': password
         },
             {
@@ -676,18 +678,16 @@ init()
 p = f'{relative_path}/user.json'
 if os.path.exists(p):
     original_data = read_json_file(p)
-
-    username = ''
     password = ''
 
     try:
-        username = original_data[0].get('username')
+        username[0] = original_data[0].get('username')
         password = original_data[0].get('password')
     except Exception as e:
         pass
 
-    if username is None:
-        username = 'default'
+    if username[0] is None:
+        username[0] = 'default'
     if password is None:
         password = '123456'
 else:
@@ -761,6 +761,10 @@ else:
     with open(f'{relative_path}/user.json', 'w', encoding='utf-8') as file:
         # indent=1 每个层级缩进1个空格
         file.write(json.dumps(temp_data, indent=1, ensure_ascii=False))
+
+# 设置LockSetForegroundWindow的值为1使程序无法调用SetForegroundWindow方法
+# 防止浏览器窗口频繁显示在最前面以及占用窗口焦点
+ctypes.windll.user32.LockSetForegroundWindow(1)
 
 try:
     asyncio.run(main())
