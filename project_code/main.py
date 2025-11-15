@@ -144,8 +144,8 @@ temp_bag_num3_dic = {}
 save_edge_dir = ''
 save_google_chrome_dir = ''
 
-gift_value_dic = {'小心心':'1钻', '大啤酒':'2钻', '棒棒糖':'9钻', '小皇冠':'10钻', '撩一下':'19钻'}
-gift_value_dic2 = {'小心心':1, '大啤酒':2, '棒棒糖':9, '小皇冠':10, '撩一下':19}
+gift_value_dic = {'小心心':'1钻', '大啤酒':'2钻', '棒棒糖':'9钻', '小皇冠':'10钻', '撩一下':'19钻', '比心': '199钻'}
+gift_value_dic2 = {'小心心':1, '大啤酒':2, '棒棒糖':9, '小皇冠':10, '撩一下':19, '比心': 199}
 
 count_from_search_thread = 0
 
@@ -167,6 +167,46 @@ browser2_cookies = {}
 
 reduced_amount = 0
 sio = socketio.AsyncClient()
+sio2 = socketio.AsyncClient()
+sio3 = socketio.AsyncClient()
+
+@sio3.event
+async def connect():
+    await sio3.emit('update_balance', 1)
+
+    await asyncio.sleep(2)
+    await sio3.disconnect()
+
+# 连接本地服务器(更新余额)
+async def connect_to_local_server2():
+    try:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(Fore.YELLOW + f'{timestamp} 尝试连接本地服务器以更新余额' + Fore.RESET)
+
+        await sio3.connect('http://localhost:5000')
+        await sio3.wait()
+    except Exception as e:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(Fore.RED + f'{timestamp} 本地服务器没有打开，连接失败！' + Fore.RESET)
+
+@sio2.event
+async def connect():
+    await sio2.emit('update_lottery_info', 1)
+
+    await asyncio.sleep(2)
+    await sio2.disconnect()
+
+# 连接本地服务器(更新lottery_info)
+async def connect_to_local_server():
+    try:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(Fore.YELLOW + f'{timestamp} 尝试连接本地服务器以更新lottery_info' + Fore.RESET)
+
+        await sio2.connect('http://localhost:5000')
+        await sio2.wait()
+    except Exception as e:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(Fore.RED + f'{timestamp} 本地服务器没有打开，连接失败！' + Fore.RESET)
 
 @sio.on('update_result')
 async def update_result(data):
