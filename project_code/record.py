@@ -22,8 +22,8 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 # 构建相对路径
 relative_path = os.path.join(current_dir)
 
-gift_value_dic = {'小心心':'1钻', '大啤酒':'2钻', '棒棒糖':'9钻', '小皇冠':'10钻', '撩一下':'19钻'}
-gift_value_dic2 = {'小心心':1, '大啤酒':2, '棒棒糖':9, '小皇冠':10, '撩一下':19}
+gift_value_dic = {'小心心':'1钻', '大啤酒':'2钻', '棒棒糖':'9钻', '小皇冠':'10钻', '撩一下':'19钻', '比心': '199钻'}
+gift_value_dic2 = {'小心心':1, '大啤酒':2, '棒棒糖':9, '小皇冠':10, '撩一下':19, '比心': 199}
 
 def get_pushplus_token():
     p = f'{relative_path}/pushplus.json'
