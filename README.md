@@ -1,9 +1,8 @@
 # dy_lottery_helper
 ## 蓝奏云下载地址
 ```
-https://wwik.lanzouu.com/iV0OC3awxezi
+https://wwik.lanzouu.com/i2LIQ3b5hipa
 ```
-
 ## 作者抖音号
 大号
 
@@ -40,6 +39,16 @@ https://wwik.lanzouu.com/iV0OC3awxezi
 4.程序带有被风控检测，如果检测到可能处于被风控状态，会更加严格地筛选福袋以减少福袋的参与，避免更严重的黑号情况，同时尽可能减少了因参与粉丝团福袋导致的钻石损失的情况
 ## 程序效果(双账号)(到目前为止最好的效果):
 <img width="1413" height="940" alt="0_today(2025-10-21)" src="https://github.com/user-attachments/assets/4d902a4b-4552-49cc-b983-975377a955bf" />
+
+## 2025/11/15
+## 版本4.2.0
+1.新增了’数据可视化’功能，你可以在打开的本地网页中修改user.json配置以及查看今日lottery_info的详细数据
+
+**在使用该功能前，请先下载并安装好Node.js**
+
+2.扩大了方法’通过类别查询直播间’的查找范围
+
+<img width="1476" height="839" alt="image" src="https://github.com/user-attachments/assets/57f9362e-70ad-49aa-9e56-ef598f096c3e" />
 
 ## 2025/11/12
 ## 版本4.1.0
