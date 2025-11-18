@@ -15,8 +15,10 @@ from colorama import Fore,init
 from global_v import *
 
 sio = socketio.AsyncClient()
+sio2 = socketio.AsyncClient()
 
 password = ''
+nickname = ''
 vip_time = -1
 
 # 获取当前文件所在的目录
@@ -70,12 +72,12 @@ def reset_config_if_meets_conditions(warn_text):
     print(Fore.RED + f'{timestamp} {warn_text}' + Fore.RESET)
 
 async def main():
-    # 连接服务器的代码块
+    # 隐藏的代码块
 
 # 查看当前版本
 @sio.on('get_program_version')
 async def get_program_version(data):
-    current_program_version = '4.0.3'
+    current_program_version = '4.2.1'
 
     if data != current_program_version:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -95,7 +97,6 @@ async def connect():
     print(Fore.YELLOW + f'{timestamp} 已建立和服务器的连接' + Fore.RESET)
 
     await sio.emit('get_program_version', '1')
-
 
 @sio.event
 async def disconnect():
@@ -119,7 +120,22 @@ async def create_account(data):
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 print(Fore.RED + f'{timestamp} 用户不存在，创建用户' + Fore.RESET)
 
-                await sio.emit('insert', [{'username':username[0], 'password':password, 'vip_time':time.time()}])
+                await sio.emit('insert', [{'username':username[0], 'password':password, 'vip_time':time.time(), 'nickname':nickname}])
+
+    await asyncio.sleep(2)
+    await sio.disconnect()
+
+@sio.on('update_nickname_result')
+async def update_nickname_result(data):
+    status = data[0].get('status')
+
+    if status:
+        if status == 'succeed':
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print(Fore.GREEN + f'{timestamp} 服务器更新昵称成功！' + Fore.RESET)
+        else:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            print(Fore.RED + f'{timestamp} 服务器更新昵称失败！' + Fore.RESET)
 
     await asyncio.sleep(2)
     await sio.disconnect()
@@ -213,6 +229,10 @@ async def get_user_info(data):
     temp_password = data[0].get('password')
     vip_time = data[0].get('vip_time')
     balance[0] = data[0].get('balance')
+    temp_nickname = data[0].get('nickname')
+
+    if not temp_nickname:
+        temp_nickname = '匿名用户'
 
     VIP_expire_time[0] = vip_time
 
@@ -526,8 +546,9 @@ async def get_user_info(data):
     if is_VIP[0] == 1 or is_temporary_VIP[0] == 1:
         data = [{
             'username': username[0],
-            'password': password
-        },
+            'password': password,
+            '昵称': nickname
+            },
             {
                 '功能': '符合条件时自动暂停程序',
                 '限制': '无限制',
@@ -593,15 +614,20 @@ async def get_user_info(data):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(Fore.GREEN + f'{timestamp} user.json文件格式已更新到最新版:D' + Fore.RESET)
 
-        await asyncio.sleep(2)
-        await sio.disconnect()
+        if temp_nickname != nickname:
+            await sio.emit('update_nickname', [{'username': username[0], 'nickname': nickname}])
+        else:
+            await asyncio.sleep(2)
+            await sio.disconnect()
 
         return original_data
+
     if is_VIP[0] == 0 and is_temporary_VIP[0] == 0:
         data = [{
             'username': username[0],
-            'password': password
-        },
+            'password': password,
+            '昵称': nickname
+            },
             {
                 '功能': '符合条件时自动暂停程序',
                 '限制': '无限制',
@@ -667,8 +693,11 @@ async def get_user_info(data):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(Fore.GREEN + f'{timestamp} user.json文件格式已更新到最新版:D' + Fore.RESET)
 
-        await asyncio.sleep(2)
-        await sio.disconnect()
+        if temp_nickname != nickname:
+            await sio.emit('update_nickname', [{'username': username[0], 'nickname': nickname}])
+        else:
+            await asyncio.sleep(2)
+            await sio.disconnect()
 
         return original_data
 
@@ -683,6 +712,7 @@ if os.path.exists(p):
     try:
         username[0] = original_data[0].get('username')
         password = original_data[0].get('password')
+        nickname = original_data[0].get('昵称')
     except Exception as e:
         pass
 
@@ -690,13 +720,16 @@ if os.path.exists(p):
         username[0] = 'default'
     if password is None:
         password = '123456'
+    if nickname is None:
+        nickname = '匿名用户'
 else:
     login_status[0] = 1
 
     temp_data = [{
         'username': 'default',
-        'password': '123456'
-    },
+        'password': '123456',
+        '昵称': ''
+        },
         {
             '功能': '符合条件时自动暂停程序',
             '限制': '无限制',
