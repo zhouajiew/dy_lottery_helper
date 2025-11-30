@@ -1257,6 +1257,15 @@ async def control_driver2_with_playwright():
                         reset_config_if_meets_conditions('当前时间不处于免费VIP时间段，无法临时使用VIP功能:(')
                         reset_temporary_vip2()
 
+                # 手动切换账号
+                if is_VIP[0] == 1 or is_temporary_VIP[0] == 1:
+                    if change_account_manually[0] == 1:
+                        change_account_manually[0] = 0
+
+                        control_driver2_change_account = True
+
+                        break
+
                 if pause[0] == 0:
                     try:
                         browser_cookies = {
@@ -2011,7 +2020,7 @@ async def control_driver2_with_playwright():
                                 key_element_type = 404
 
                             if 'red_packet' in eligible_websites[0]:
-                                key_element_type = 888
+                                key_element_type += 888
 
                             unsupported_live_type = False
 
