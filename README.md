@@ -1,7 +1,7 @@
 # dy_lottery_helper
 ## 蓝奏云下载地址
 ```
-https://wwik.lanzouu.com/iS5HT3bham9i
+https://wwauw.lanzouu.com/igJdd3ci1gja
 ```
 ## 作者抖音号
 大号
@@ -39,6 +39,16 @@ https://wwik.lanzouu.com/iS5HT3bham9i
 4.程序带有被风控检测，如果检测到可能处于被风控状态，会更加严格地筛选福袋以减少福袋的参与，避免更严重的黑号情况，同时尽可能减少了因参与粉丝团福袋导致的钻石损失的情况
 ## 程序效果(双账号)(到目前为止最好的效果):
 <img width="1422" height="922" alt="0_today(2025-11-28)" src="https://github.com/user-attachments/assets/73c5ab50-6b4b-4472-bda4-a1171e8747d3" />
+
+## 2025/11/30
+## 版本4.3.0
+1.新增了lottery_info记录的内容，现在会记录账号0/账号1现有的钻石数量
+
+2.新增了键盘监听事件’手动切换账号’，你可以按下’3’键以手动切换账号(此监听事件仅VIP用户可触发)
+
+**变更:现在启动程序时默认不开启键盘事件监听**
+
+3.修改了一些逻辑不合理的地方
 
 ## 2025/11/18
 ## 版本4.2.1
