@@ -4,6 +4,7 @@ import re
 import time
 import math
 import threading
+from encodings import normalize_encoding
 
 import requests
 import socketio
@@ -58,8 +59,13 @@ temp_today_income = 0
 
 # 初始钻石数量
 initial_diamond = 0
+# 多开账号0的初始钻石
+initial_diamond2 = 0
+
 # 后续记录的钻石数量
 final_diamond = 0
+# 后续记录的钻石数量(多开账号0)
+final_diamond2 = 0
 
 # 参与的福袋数
 bag_num1 = 0
@@ -154,8 +160,6 @@ count_from_control_driver2_thread = 0
 # 本小时已参与过该直播间的人气红包的后续不用再消耗1钻石来参与该直播间的人气红包
 already_buy_popularity_ticket = []
 
-# 中奖了需要进行消息推送
-need_to_receive_notification = False
 # 通知内容
 notification_title = ''
 notification_detailed_content = ''
@@ -166,47 +170,103 @@ browser_cookies = {}
 browser2_cookies = {}
 
 reduced_amount = 0
+
+# 多开要统一一下停留时间
+stay_in_live_time = {}
+
 sio = socketio.AsyncClient()
 sio2 = socketio.AsyncClient()
 sio3 = socketio.AsyncClient()
 
+sio_start_connected = False
+sio2_start_connected = False
+sio3_start_connected = False
+
+sio_already_connected = False
+sio2_already_connected = False
+sio3_already_connected = False
+
 @sio3.event
 async def connect():
-    await sio3.emit('update_balance', 1)
+    global sio3_start_connected
+    global sio3_already_connected
 
-    await asyncio.sleep(2)
+    sio3_already_connected = True
+
+    await sio3.emit('update_balance', float(balance[0]))
+
+    await asyncio.sleep(5)
     await sio3.disconnect()
+
+    sio3_start_connected = False
+    sio3_already_connected = False
 
 # 连接本地服务器(更新余额)
 async def connect_to_local_server2():
+    global sio3_start_connected
+    global sio3_already_connected
+
     try:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(Fore.YELLOW + f'{timestamp} 尝试连接本地服务器以更新余额' + Fore.RESET)
 
-        await sio3.connect('http://localhost:5000')
-        await sio3.wait()
+        if not sio3_start_connected:
+            try:
+                sio3_start_connected = True
+                await sio3.connect('http://localhost:5000')
+                await sio3.wait()
+            except Exception as e:
+                sio3_start_connected = False
+                sio3_already_connected = False
+        else:
+            while not sio3_already_connected:
+                await asyncio.sleep(0.1)
+            await sio3.emit('update_balance', float(balance[0]))
+
     except Exception as e:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(Fore.RED + f'{timestamp} 本地服务器没有打开，连接失败！' + Fore.RESET)
+        print(Fore.RED + f'{timestamp} (更新余额)连接本地服务器失败！{e}' + Fore.RESET)
 
 @sio2.event
 async def connect():
+    global sio2_start_connected
+    global sio2_already_connected
+
+    sio2_already_connected = True
+
     await sio2.emit('update_lottery_info', 1)
 
-    await asyncio.sleep(2)
+    await asyncio.sleep(5)
     await sio2.disconnect()
+
+    sio2_start_connected = False
+    sio2_already_connected = False
 
 # 连接本地服务器(更新lottery_info)
 async def connect_to_local_server():
+    global sio2_start_connected
+    global sio2_already_connected
+
     try:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         print(Fore.YELLOW + f'{timestamp} 尝试连接本地服务器以更新lottery_info' + Fore.RESET)
 
-        await sio2.connect('http://localhost:5000')
-        await sio2.wait()
+        if not sio2_start_connected:
+            try:
+                sio2_start_connected = True
+                await sio2.connect('http://localhost:5000')
+                await sio2.wait()
+            except Exception as e:
+                sio2_start_connected = False
+                sio2_already_connected = False
+        else:
+            while not sio2_already_connected:
+                await asyncio.sleep(0.1)
+            await sio2.emit('update_lottery_info', 1)
+
     except Exception as e:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(Fore.RED + f'{timestamp} 本地服务器没有打开，连接失败！' + Fore.RESET)
+        print(Fore.RED + f'{timestamp} (更新lottery_info)连接本地服务器失败！{e}' + Fore.RESET)
 
 @sio.on('update_result')
 async def update_result(data):
@@ -1059,8 +1119,6 @@ async def control_driver2_with_playwright():
     global live_index
     global eligible_websites
     global website_titles
-    global initial_diamond
-    global final_diamond
     global is_closing
     global close_sign
     global wait_until_draw_end
@@ -1097,7 +1155,6 @@ async def control_driver2_with_playwright():
 
     global already_buy_popularity_ticket
 
-    global need_to_receive_notification
     global notification_title
     global notification_detailed_content
 
@@ -1109,6 +1166,12 @@ async def control_driver2_with_playwright():
 
     global browser_cookies
     global browser2_cookies
+
+    global initial_diamond
+    global final_diamond
+
+    global initial_diamond2
+    global final_diamond2
 
     def reset_temporary_vip2():
         global normal_p
@@ -1186,6 +1249,33 @@ async def control_driver2_with_playwright():
 
         while True:
             try:
+                if open_multiple_accounts[0] == 1 and already_open_multiple_accounts[0] == 0:
+                    already_open_multiple_accounts[0] = 1
+
+                    m_browser = await p.chromium.launch_persistent_context(
+                        user_data_dir=f'{relative_path}/user/playwright_data/multiple_accounts_1',
+                        channel="chrome",
+                        headless=False,
+                        no_viewport=True,
+                        # do NOT add custom browser headers or user_agent
+                    )
+
+                    m_page = await m_browser.new_page()
+
+                    try:
+                        await m_page.goto("https://www.douyin.com/jingxuan", timeout=20000)
+                    except Exception as e:
+                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+
+                if open_multiple_accounts[0] == 0 and already_open_multiple_accounts[0] == 1:
+                    already_open_multiple_accounts[0] = 0
+                    try:
+                        await m_browser.close()
+                    except Exception as e:
+                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        print(Fore.RED + f'{timestamp} 关闭多开账号0所在的浏览器失败，请手动关闭该浏览器！' + Fore.RESET)
+
                 # 判断VIP是否失效
                 if is_VIP[0]:
                     if time.time() > VIP_expire_time[0] and balance[0] <= 0:
@@ -1193,16 +1283,6 @@ async def control_driver2_with_playwright():
 
                         reset_config_if_meets_conditions('VIP已过期且余额不足，无法使用VIP功能:(')
                         reset_temporary_vip2()
-
-                # 消息推送
-                if pushplus_token[0] != '':
-                    if need_to_receive_notification:
-                        need_to_receive_notification = False
-
-                        send_wechat(notification_title, notification_detailed_content)
-
-                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                        print(Fore.GREEN + f'{timestamp} 已推送中奖通知至微信:D' + Fore.RESET)
 
                 # 去除符合条件的已参与人气红包的直播间
                 temp_index_list = []
@@ -1266,6 +1346,10 @@ async def control_driver2_with_playwright():
 
                         break
 
+                # 暂停时查找元素，保持页面加载状态
+                if pause[0] == 1:
+                    temp_element = await page.locator("[class='temp_element']").all()
+
                 if pause[0] == 0:
                     try:
                         browser_cookies = {
@@ -1286,9 +1370,17 @@ async def control_driver2_with_playwright():
                         print(
                             Fore.GREEN + f'{timestamp} 检测到有验证码iframe，程序已自动暂停，请手动完成验证！' + Fore.RESET)
 
-                        need_to_receive_notification = True
                         notification_title = '检测到有验证码ifame'
                         notification_detailed_content = '程序已自动暂停，请手动完成验证！'
+
+                        send_wechat_thread = threading.Thread(target=send_wechat,
+                                                              args=(notification_title, notification_detailed_content,))
+                        send_wechat_thread.start()
+
+                        timestamp = datetime.now().strftime(
+                            "%Y-%m-%d %H:%M:%S")
+                        print(
+                            Fore.GREEN + f'{timestamp} 已推送中奖通知至微信:D' + Fore.RESET)
 
                     end_time = time.time()
                     temp_time = end_time - start_time
@@ -1312,7 +1404,7 @@ async def control_driver2_with_playwright():
                     print(
                         Fore.GREEN + f'{timestamp} 本次已参与福袋数:' + Fore.LIGHTBLUE_EX + f'{bag_num1}' + Fore.GREEN + '，未中奖福袋数:' + Fore.RED + f'{bag_num2}' + Fore.GREEN + '，中奖福袋数:' + Fore.YELLOW + f'{bag_num3}' + Fore.RESET)
 
-                    income = final_diamond - initial_diamond
+                    income = final_diamond - initial_diamond + final_diamond2 - initial_diamond2
 
                     if income >= 0:
                         if today_income[0] >= 0:
@@ -1722,11 +1814,42 @@ async def control_driver2_with_playwright():
                                 print(
                                     f'{timestamp} 意外退出指定直播间，尝试重新进入该直播间')
 
-                                try:
-                                    await page.goto(eligible_websites[0]['url'], timeout=20000)
-                                except Exception as e:
-                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                    print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+                                async def go_to_at_the_same_time():
+                                    try:
+                                        await page.goto(eligible_websites[0]['url'], timeout=20000)
+                                    except Exception as e:
+                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+
+                                async def go_to_at_the_same_time2():
+                                    await asyncio.sleep(random.uniform(1, 2))
+
+                                    try:
+                                        await m_page.goto(eligible_websites[0]['url'], timeout=20000)
+                                    except Exception as e:
+                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                        print(Fore.RED + f'{timestamp} (多开账号0)打开网页超时！' + Fore.RESET)
+
+                                if already_open_multiple_accounts[0] == 0:
+                                    await asyncio.create_task(go_to_at_the_same_time())
+                                else:
+                                    go_to_task1 = asyncio.create_task(go_to_at_the_same_time())
+                                    go_to_task2 = asyncio.create_task(go_to_at_the_same_time2())
+                                    await asyncio.gather(go_to_task1, go_to_task2)
+
+                                    '''
+                                    以下代码不会并发执行！
+                                    await asyncio.create_task(go_to_at_the_same_time)
+                                    await asyncio.create_task(go_to_at_the_same_time2)
+                                    改成
+                                    go_to_task1 = asyncio.create_task(go_to_at_the_same_time())
+                                    go_to_task2 = asyncio.create_task(go_to_at_the_same_time2())                    
+                                    1.
+                                    await go_to_task1
+                                    await go_to_task2     
+                                    2.
+                                    await asyncio.gather(go_to_task1, go_to_task2)
+                                    '''
 
                             # 这里不再等待红包结束，保证至少参与一个红包就行
                             # 有正在参与的剩余时间<30s的红包，不跳转
@@ -1770,12 +1893,29 @@ async def control_driver2_with_playwright():
                                                 print(
                                                     Fore.RED + f'{timestamp} 取消task_while_staying_in_live_with_playwright失败！' + Fore.RESET)
 
-                                            try:
-                                                # driver2.get(eligible_websites[0]['url'])
-                                                await page.goto(eligible_websites[0]['url'], timeout=20000)
-                                            except Exception as e:
-                                                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                                print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+                                            async def go_to_at_the_same_time():
+                                                try:
+                                                    await page.goto(eligible_websites[0]['url'], timeout=20000)
+                                                except Exception as e:
+                                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                    print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+
+                                            async def go_to_at_the_same_time2():
+                                                await asyncio.sleep(random.uniform(1, 2))
+
+                                                try:
+                                                    await m_page.goto(eligible_websites[0]['url'], timeout=20000)
+                                                except Exception as e:
+                                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                    print(
+                                                        Fore.RED + f'{timestamp} (多开账号0)打开网页超时！' + Fore.RESET)
+
+                                            if already_open_multiple_accounts[0] == 0:
+                                                await asyncio.create_task(go_to_at_the_same_time())
+                                            else:
+                                                go_to_task1 = asyncio.create_task(go_to_at_the_same_time())
+                                                go_to_task2 = asyncio.create_task(go_to_at_the_same_time2())
+                                                await asyncio.gather(go_to_task1, go_to_task2)
 
                                                 # time.sleep(2)
                                             await asyncio.sleep(2)
@@ -1811,12 +1951,29 @@ async def control_driver2_with_playwright():
                                                     print(
                                                         Fore.RED + f'{timestamp} 取消task_while_staying_in_live_with_playwright失败！' + Fore.RESET)
 
-                                                try:
-                                                    # driver2.get(eligible_websites[0]['url'])
-                                                    await page.goto(eligible_websites[0]['url'], timeout=20000)
-                                                except Exception as e:
-                                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                                    print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+                                                async def go_to_at_the_same_time():
+                                                    try:
+                                                        await page.goto(eligible_websites[0]['url'], timeout=20000)
+                                                    except Exception as e:
+                                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                        print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+
+                                                async def go_to_at_the_same_time2():
+                                                    await asyncio.sleep(random.uniform(1, 2))
+
+                                                    try:
+                                                        await m_page.goto(eligible_websites[0]['url'], timeout=20000)
+                                                    except Exception as e:
+                                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                        print(
+                                                            Fore.RED + f'{timestamp} (多开账号0)打开网页超时！' + Fore.RESET)
+
+                                                if already_open_multiple_accounts[0] == 0:
+                                                    await asyncio.create_task(go_to_at_the_same_time())
+                                                else:
+                                                    go_to_task1 = asyncio.create_task(go_to_at_the_same_time())
+                                                    go_to_task2 = asyncio.create_task(go_to_at_the_same_time2())
+                                                    await asyncio.gather(go_to_task1, go_to_task2)
 
                                                     # time.sleep(2)
                                                 await asyncio.sleep(2)
@@ -1866,12 +2023,30 @@ async def control_driver2_with_playwright():
                                                     print(
                                                         Fore.RED + f'{timestamp} 取消task_while_staying_in_live_with_playwright失败！' + Fore.RESET)
 
-                                                try:
-                                                    # driver2.get(eligible_websites[0]['url'])
-                                                    await page.goto(eligible_websites[0]['url'], timeout=20000)
-                                                except Exception as e:
-                                                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                                    print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+                                                async def go_to_at_the_same_time():
+                                                    try:
+                                                        await page.goto(eligible_websites[0]['url'], timeout=20000)
+                                                    except Exception as e:
+                                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                        print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+
+                                                async def go_to_at_the_same_time2():
+                                                    await asyncio.sleep(random.uniform(1, 2))
+
+                                                    try:
+                                                        await m_page.goto(eligible_websites[0]['url'], timeout=20000)
+                                                    except Exception as e:
+                                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                        print(
+                                                            Fore.RED + f'{timestamp} (多开账号0)打开网页超时！' + Fore.RESET)
+
+                                                if already_open_multiple_accounts[0] == 0:
+                                                    await asyncio.create_task(go_to_at_the_same_time())
+                                                else:
+                                                    go_to_task1 = asyncio.create_task(go_to_at_the_same_time())
+                                                    go_to_task2 = asyncio.create_task(go_to_at_the_same_time2())
+                                                    await asyncio.gather(go_to_task1, go_to_task2)
+
                                             # 如果正处于当前直播间，不关闭
                                             else:
                                                 # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
@@ -1916,12 +2091,31 @@ async def control_driver2_with_playwright():
                                                         print(
                                                             Fore.RED + f'{timestamp} 取消task_while_staying_in_live_with_playwright失败！' + Fore.RESET)
 
-                                                    try:
-                                                        # driver2.get(eligible_websites[0]['url'])
-                                                        await page.goto(eligible_websites[0]['url'], timeout=20000)
-                                                    except Exception as e:
-                                                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                                                        print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+                                                    async def go_to_at_the_same_time():
+                                                        try:
+                                                            await page.goto(eligible_websites[0]['url'], timeout=20000)
+                                                        except Exception as e:
+                                                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                            print(Fore.RED + f'{timestamp} 打开网页超时！' + Fore.RESET)
+
+                                                    async def go_to_at_the_same_time2():
+                                                        await asyncio.sleep(random.uniform(1, 2))
+
+                                                        try:
+                                                            await m_page.goto(eligible_websites[0]['url'],
+                                                                              timeout=20000)
+                                                        except Exception as e:
+                                                            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                                                            print(
+                                                                Fore.RED + f'{timestamp} (多开账号0)打开网页超时！' + Fore.RESET)
+
+                                                    if already_open_multiple_accounts[0] == 0:
+                                                        await asyncio.create_task(go_to_at_the_same_time())
+                                                    else:
+                                                        go_to_task1 = asyncio.create_task(go_to_at_the_same_time())
+                                                        go_to_task2 = asyncio.create_task(go_to_at_the_same_time2())
+                                                        await asyncio.gather(go_to_task1, go_to_task2)
+
                                                 # 如果正处于当前直播间，不关闭
                                                 else:
                                                     # 剩余时间到5分钟以内时停留在该直播间，等待开奖结束
@@ -2058,7 +2252,10 @@ async def control_driver2_with_playwright():
                                         dc.start()
                                         '''
 
-                                        asyncio.create_task(delay_check_with_playwright(page, key_element_type))
+                                        asyncio.create_task(delay_check_with_playwright(page, key_element_type, current_account_index))
+
+                                        if already_open_multiple_accounts[0] == 1:
+                                            asyncio.create_task(delay_check_with_playwright(m_page, key_element_type, 100))
 
                                         working_threads2[temp_url] = 1
                                 except Exception as e:
@@ -2067,7 +2264,11 @@ async def control_driver2_with_playwright():
                                         Fore.RED + f'{timestamp} 开启delay_check_with_playwright协程失败！' + Fore.RESET)
 
                 # time.sleep(random.uniform(5, 10))
-                await asyncio.sleep(random.uniform(5, 10))
+                if pause[0] == 0:
+                    await asyncio.sleep(random.uniform(5, 10))
+                # 暂停时查找元素，保持页面加载状态
+                else:
+                    await asyncio.sleep(1)
 
                 count_from_control_driver2_thread += 1
             except asyncio.CancelledError:
