@@ -174,6 +174,9 @@ reduced_amount = 0
 # 多开要统一一下停留时间
 stay_in_live_time = {}
 
+# 切换直播间后需要取消参与红包后的点赞协程
+click_likes_task = None
+
 sio = socketio.AsyncClient()
 sio2 = socketio.AsyncClient()
 sio3 = socketio.AsyncClient()
