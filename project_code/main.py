@@ -96,7 +96,7 @@ real_object_p = 0.01
 base_real_object_p = real_object_p
 
 # 参与了，等待开奖结束
-wait_until_draw_end = False
+wait_until_draw_end = {}
 
 # 是否正在关闭标签页
 is_closing = False
@@ -112,11 +112,8 @@ error_windows = {}
 # 临时保存的room_id
 dic_room_id = {}
 
-# 防止重复开启'task_while_staying_in_live_with_playwright'协程
-working_threads = {}
-
 # 防止重复开启'delay_check_with_playwright'协程
-working_threads2 = {}
+working_threads = {}
 
 # 需要更新room_id的record3中的直播间
 need_update_lives = []
@@ -125,18 +122,16 @@ need_update_lives = []
 bag_index = 0
 
 # 是否参与了红包
-have_participated_red_packet = False
+have_participated_red_packet = {}
 # 在task_while_staying_in_live中参与红包，红包剩余时间<30s标记一下，防止跳转到新直播间
-red_packet_almost_over = False
+red_packet_almost_over = {}
 
 # 两次进入有发红包的直播间的间隔>5分钟
 enter_red_packet_live_time = 0
 last_enter_red_packet_live_time = 0
 
 # task_while_staying_in_live_with_playwright
-staying_in_live_task = None
-live_room_changed = False
-staying_in_live_task_record_url = ''
+staying_in_live_task = []
 
 control_driver2_change_account = False
 control_driver2_restart_browser = False
@@ -150,8 +145,8 @@ temp_bag_num3_dic = {}
 save_edge_dir = ''
 save_google_chrome_dir = ''
 
-gift_value_dic = {'小心心':'1钻', '大啤酒':'2钻', '棒棒糖':'9钻', '小皇冠':'10钻', '撩一下':'19钻', '比心': '199钻'}
-gift_value_dic2 = {'小心心':1, '大啤酒':2, '棒棒糖':9, '小皇冠':10, '撩一下':19, '比心': 199}
+gift_value_dic = {'小心心':'1钻', '大啤酒':'2钻', '棒棒糖':'9钻', '小皇冠':'10钻', '撩一下':'19钻', '比心': '199钻', '做我的猫': '299钻', '钞票枪': '520钻'}
+gift_value_dic2 = {'小心心':1, '大啤酒':2, '棒棒糖':9, '小皇冠':10, '撩一下':19, '比心': 199, '做我的猫': 299, '钞票枪': 520}
 
 count_from_search_thread = 0
 
@@ -169,13 +164,11 @@ search_with_playwright_task = None
 browser_cookies = {}
 browser2_cookies = {}
 
-reduced_amount = 0
-
 # 多开要统一一下停留时间
 stay_in_live_time = {}
 
 # 切换直播间后需要取消参与红包后的点赞协程
-click_likes_task = None
+click_likes_task = []
 
 sio = socketio.AsyncClient()
 sio2 = socketio.AsyncClient()
@@ -191,18 +184,9 @@ sio3_already_connected = False
 
 @sio3.event
 async def connect():
-    global sio3_start_connected
     global sio3_already_connected
 
     sio3_already_connected = True
-
-    await sio3.emit('update_balance', float(balance[0]))
-
-    await asyncio.sleep(5)
-    await sio3.disconnect()
-
-    sio3_start_connected = False
-    sio3_already_connected = False
 
 # 连接本地服务器(更新余额)
 async def connect_to_local_server2():
@@ -217,7 +201,14 @@ async def connect_to_local_server2():
             try:
                 sio3_start_connected = True
                 await sio3.connect('http://localhost:5000')
-                await sio3.wait()
+
+                await sio3.emit('update_balance', float(balance[0]))
+
+                await asyncio.sleep(5)
+                await sio3.disconnect()
+
+                sio3_start_connected = False
+                sio3_already_connected = False
             except Exception as e:
                 sio3_start_connected = False
                 sio3_already_connected = False
@@ -232,18 +223,9 @@ async def connect_to_local_server2():
 
 @sio2.event
 async def connect():
-    global sio2_start_connected
     global sio2_already_connected
 
     sio2_already_connected = True
-
-    await sio2.emit('update_lottery_info', 1)
-
-    await asyncio.sleep(5)
-    await sio2.disconnect()
-
-    sio2_start_connected = False
-    sio2_already_connected = False
 
 # 连接本地服务器(更新lottery_info)
 async def connect_to_local_server():
@@ -258,7 +240,14 @@ async def connect_to_local_server():
             try:
                 sio2_start_connected = True
                 await sio2.connect('http://localhost:5000')
-                await sio2.wait()
+
+                await sio2.emit('update_lottery_info', 1)
+
+                await asyncio.sleep(5)
+                await sio2.disconnect()
+
+                sio2_start_connected = False
+                sio2_already_connected = False
             except Exception as e:
                 sio2_start_connected = False
                 sio2_already_connected = False
