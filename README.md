@@ -1,4 +1,4 @@
-**新版本有严重bug，在改bug中**
+# 新版本有严重bug，在改bug中
 # dy_lottery_helper
 ## 蓝奏云下载地址
 ```
