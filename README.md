@@ -1,8 +1,7 @@
-# 新版本有严重bug，在改bug中
 # dy_lottery_helper
 ## 蓝奏云下载地址
 ```
-https://wwauw.lanzouu.com/ilnO33e5z96d
+https://wwauw.lanzouu.com/i6v9D3e6u0qf
 ```
 ## 作者抖音号
 大号
