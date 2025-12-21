@@ -22,8 +22,8 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 # 构建相对路径
 relative_path = os.path.join(current_dir)
 
-gift_value_dic = {'小心心':'1钻', '大啤酒':'2钻', '棒棒糖':'9钻', '小皇冠':'10钻', '撩一下':'19钻', '比心': '199钻'}
-gift_value_dic2 = {'小心心':1, '大啤酒':2, '棒棒糖':9, '小皇冠':10, '撩一下':19, '比心': 199}
+gift_value_dic = {'小心心':'1钻', '大啤酒':'2钻', '棒棒糖':'9钻', '小皇冠':'10钻', '撩一下':'19钻', '比心': '199钻', '做我的猫': '299钻', '钞票枪': '520钻'}
+gift_value_dic2 = {'小心心':1, '大啤酒':2, '棒棒糖':9, '小皇冠':10, '撩一下':19, '比心': 199, '做我的猫': 299, '钞票枪': 520}
 
 def get_pushplus_token():
     p = f'{relative_path}/pushplus.json'
@@ -151,7 +151,15 @@ def get_lottery_info():
                 with open(f'{relative_path}/lottery_info/{timestamp2}.json', 'w',
                           encoding='utf-8') as temp_f:
                     # indent=1 每个层级缩进1个空格
-                    temp_f.write(json.dumps([{'今日总收益':'+0', '今日参与的福袋数': 0, '今日中奖率': 0, '今日中福袋的数量': 0, '今日中过的福袋的总收益' : '+0', '今日中过的钻石红包的总收益' : '+0'}], indent=1, ensure_ascii=False))
+                    temp_f.write(json.dumps([{'今日总收益':'+0',
+                                              '今日参与的福袋数': 0,
+                                              '今日中奖率': 0,
+                                              '今日中福袋的数量': 0,
+                                              '今日中实物福袋的数量': 0,
+                                              '今日中过的福袋的总收益' : '+0',
+                                              '今日中过的钻石红包的总收益' : '+0',
+                                              '今日参与的人气红包数' : '0',
+                                              '今日中过的礼物红包的总收益' : '+0'}], indent=1, ensure_ascii=False))
 
             except Exception as e:
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
