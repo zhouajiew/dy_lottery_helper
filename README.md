@@ -1,7 +1,7 @@
 # dy_lottery_helper
 ## 蓝奏云下载地址
 ```
-https://wwauw.lanzouu.com/i6v9D3e6u0qf
+https://wwauw.lanzouu.com/i2Vjc3ebn1jc
 ```
 ## 作者抖音号
 大号
@@ -39,6 +39,14 @@ https://wwauw.lanzouu.com/i6v9D3e6u0qf
 4.程序带有被风控检测，如果检测到可能处于被风控状态，会更加严格地筛选福袋以减少福袋的参与，避免更严重的黑号情况，同时尽可能减少了因参与粉丝团福袋导致的钻石损失的情况
 ## 程序效果(双账号)(到目前为止最好的效果):
 <img width="1422" height="922" alt="0_today(2025-11-28)" src="https://github.com/user-attachments/assets/73c5ab50-6b4b-4472-bda4-a1171e8747d3" />
+
+## 2025/12/23
+## 版本5.0.0
+**由于抖音算法更新，请停止使用版本5.0.0之前版本的程序！**
+
+1.修复了由于抖音算法更新导致的福袋信息无法被获取到的bug
+
+2.现在功能性浏览器默认处于停用状态
 
 ## 2025/12/21
 ## 版本4.6.0
