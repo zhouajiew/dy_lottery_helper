@@ -1,3 +1,6 @@
+# 2025/12/27
+# 代码版本5.0.0
+# 后续将不再同步新版本的代码
 import asyncio
 import random
 import re
