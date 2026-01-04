@@ -1,7 +1,7 @@
 # dy_lottery_helper
 ## 蓝奏云下载地址
 ```
-https://wwauw.lanzouu.com/ilm8e3eym9fi
+https://wwauw.lanzouu.com/iBteL3f9dhqj
 ```
 ## 作者抖音号
 大号
@@ -39,6 +39,14 @@ https://wwauw.lanzouu.com/ilm8e3eym9fi
 4.程序带有被风控检测，如果检测到可能处于被风控状态，会更加严格地筛选福袋以减少福袋的参与，避免更严重的黑号情况，同时尽可能减少了因参与粉丝团福袋导致的钻石损失的情况
 ## 程序效果(双账号)(到目前为止最好的效果):
 <img width="1422" height="922" alt="0_today(2025-11-28)" src="https://github.com/user-attachments/assets/73c5ab50-6b4b-4472-bda4-a1171e8747d3" />
+
+## 2026/01/04
+## 版本5.1.2
+1.增加了对多开账号的验证码检测
+
+2.修复了键盘监听事件’手动停止/开启自动抢红包任务’执行异常的bug
+
+3.修复了功能’符合条件时自动停止抢福袋’在符合相关条件时没有正确执行对应逻辑的bug
 
 ## 2026/01/01
 ## 版本5.1.1
