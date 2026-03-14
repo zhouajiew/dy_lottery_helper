@@ -1,3 +1,5 @@
+# 本项目停止维护
+# 请移步至dy_lottery_helper2以及dy_lottery_helper2_server
 # 福袋功能已失效
 # dy_lottery_helper
 ## 蓝奏云下载地址
