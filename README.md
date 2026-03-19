@@ -1,10 +1,7 @@
-# 本项目停止维护
-# 请移步至dy_lottery_helper2以及dy_lottery_helper2_server
-# 福袋功能已失效
 # dy_lottery_helper
 ## 蓝奏云下载地址
 ```
-https://wwauw.lanzouu.com/iGxXZ3kchlgf
+https://wwauw.lanzouu.com/iY6Qg3kzgmqd
 ```
 ## 作者抖音号
 大号
@@ -40,6 +37,14 @@ QQ群
 4.程序带有被风控检测，如果检测到可能处于被风控状态，会更加严格地筛选福袋以减少福袋的参与，避免更严重的黑号情况，同时尽可能减少了因参与粉丝团福袋导致的钻石损失的情况
 ## 程序效果(双账号)(到目前为止最好的效果):
 <img width="1422" height="922" alt="0_today(2025-11-28)" src="https://github.com/user-attachments/assets/73c5ab50-6b4b-4472-bda4-a1171e8747d3" />
+
+## 2026/03/19
+## 版本7.1.0
+1.扩大了方法’通过类别查找直播间’查找直播间的范围
+
+2.修复了一些会导致程序无法正常运行的bug
+
+3.修改了一些逻辑不合理的地方
 
 ## 2026/03/11
 ## 版本7.0.0
