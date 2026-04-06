@@ -1,0 +1,1101 @@
+[
+ {
+  "今日总收益": "+0",
+  "今日参与的福袋数": 0,
+  "今日中奖率": 0,
+  "今日中福袋的数量": 0,
+  "今日中实物福袋的数量": 0,
+  "今日中过的福袋的总收益": "+0",
+  "今日中过的钻石红包的总收益": "+36",
+  "今日参与的人气红包数": 36,
+  "今日中过的礼物红包的总收益": "+213",
+  "账号0现有的钻石数量": 4824,
+  "多开账号0现有的钻石数量": 1559,
+  "多开账号1现有的钻石数量": 1240,
+  "账号1现有的钻石数量": 4468
+ },
+ {
+  "timestamp": "2026-04-06 00:05:52",
+  "title": "步战为王（三角洲行动）的抖音直播间 - 抖音直播",
+  "reward": "+3钻",
+  "type": "钻石红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 00:06:50",
+  "title": "小橘（国一妲己）的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 00:06:51",
+  "title": "小橘（国一妲己）的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 00:09:22",
+  "title": "小橘（国一妲己）的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 00:09:22",
+  "title": "小橘（国一妲己）的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 00:23:20",
+  "title": "棠棠🩰的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 00:25:29",
+  "title": "诗庆的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 00:25:29",
+  "title": "诗庆的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 00:37:52",
+  "title": "用户6976283195857的抖音直播间 - 抖音直播",
+  "reward": "+5钻",
+  "type": "钻石红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 00:43:30",
+  "title": "苏木1v4的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 00:43:31",
+  "title": "苏木1v4的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 00:49:05",
+  "title": "路途万万（三角洲行动）的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 00:49:05",
+  "title": "路途万万（三角洲行动）的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 00:53:14",
+  "title": "路途万万（三角洲行动）的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 00:53:14",
+  "title": "路途万万（三角洲行动）的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 01:02:23",
+  "title": "DJ小曼曼（直播号）的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 01:02:23",
+  "title": "DJ小曼曼（直播号）的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 01:07:21",
+  "title": "小敏说矿的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 01:07:29",
+  "title": "小敏说矿的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 01:28:25",
+  "title": "泡泡🫧…的抖音直播间 - 抖音直播",
+  "gift_type": "小皇冠",
+  "gift_value": "10钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 01:33:48",
+  "title": "小杰（火影忍者手游/pk输了版）的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 01:33:49",
+  "title": "小杰（火影忍者手游/pk输了版）的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 01:36:17",
+  "title": "小杰（火影忍者手游/pk输了版）的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 01:36:26",
+  "title": "小杰（火影忍者手游/pk输了版）的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 01:42:21",
+  "title": "迅猛龙 特蕾莎的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 01:42:21",
+  "title": "迅猛龙 特蕾莎的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 01:46:50",
+  "title": "彩小壳的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 01:46:52",
+  "title": "彩小壳的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 02:23:19",
+  "title": "乖乖（4.14生日版🎂）的抖音直播间 - 抖音直播",
+  "reward": "+2钻",
+  "type": "钻石红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 02:43:34",
+  "title": "芭蕉绿的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 02:43:35",
+  "title": "芭蕉绿的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 02:48:38",
+  "title": "茉莉雪芽的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 02:48:39",
+  "title": "茉莉雪芽的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 02:49:43",
+  "title": "茉莉雪芽的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 02:49:43",
+  "title": "茉莉雪芽的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 03:03:28",
+  "title": "小白胖喵(大坝双子星）的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 03:03:31",
+  "title": "小白胖喵(大坝双子星）的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 03:06:54",
+  "title": "小白胖喵(大坝双子星）的抖音直播间 - 抖音直播",
+  "gift_type": "棒棒糖",
+  "gift_value": "9钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 03:06:55",
+  "title": "小白胖喵(大坝双子星）的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 03:24:08",
+  "title": "茉莉雪芽的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 03:24:10",
+  "title": "茉莉雪芽的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 03:31:49",
+  "title": "1.1的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 03:31:59",
+  "title": "1.1的抖音直播间 - 抖音直播",
+  "gift_type": "小皇冠",
+  "gift_value": "10钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 03:37:00",
+  "title": "小初(病娇版)的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 03:37:10",
+  "title": "小初(病娇版)的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 03:37:12",
+  "title": "小初(病娇版)的抖音直播间",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 03:37:21",
+  "title": "小初(病娇版)的抖音直播间",
+  "gift_type": "小皇冠",
+  "gift_value": "10钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 04:28:49",
+  "title": "鑫雨说的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 04:36:06",
+  "title": "樱桃山歌团⁰⁸⁵¹的抖音直播间",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 04:36:06",
+  "title": "樱桃山歌团⁰⁸⁵¹的抖音直播间",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 04:40:40",
+  "title": "风酱的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 04:40:40",
+  "title": "风酱的抖音直播间 - 抖音直播",
+  "gift_type": "小皇冠",
+  "gift_value": "10钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 04:52:31",
+  "title": "小羊（国服露娜）的抖音直播间 - 抖音直播",
+  "reward": "+1钻",
+  "type": "钻石红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 05:12:01",
+  "title": "🍭婉婉🍭的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 05:30:44",
+  "title": "氧气的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 05:38:49",
+  "title": "船神的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 05:44:53",
+  "title": "云火火的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 05:48:59",
+  "title": "简单心的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 06:17:27",
+  "title": "空空🎤的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号0"
+ },
+ {
+  "timestamp": "2026-04-06 06:27:28",
+  "title": "嘴甜的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 07:11:27",
+  "title": "金炯炯饰品商店的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号0"
+ },
+ {
+  "timestamp": "2026-04-06 14:55:32",
+  "title": "戏曲俊哥的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 14:55:32",
+  "title": "戏曲俊哥的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 14:56:01",
+  "title": "戏曲俊哥的抖音直播间",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 14:56:01",
+  "title": "戏曲俊哥的抖音直播间",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 15:15:48",
+  "title": "沐熙咨询的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 15:15:50",
+  "title": "沐熙咨询的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 15:20:12",
+  "title": "沐熙咨询的抖音直播间 - 抖音直播",
+  "gift_type": "棒棒糖",
+  "gift_value": "9钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 15:20:13",
+  "title": "沐熙咨询的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 15:21:26",
+  "title": "R7-九龙湖的抖音直播间 - 抖音直播",
+  "reward": "+1钻",
+  "type": "钻石红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 15:25:14",
+  "title": "周全🐲的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 15:25:16",
+  "title": "周全🐲的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 15:28:53",
+  "title": "周全🐲的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 15:28:53",
+  "title": "周全🐲的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 15:39:26",
+  "title": "君陌1v4的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 15:39:27",
+  "title": "君陌1v4的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 15:49:59",
+  "title": "熊熊🎙️的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 15:50:00",
+  "title": "熊熊🎙️的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 15:57:57",
+  "title": "Ly-5264的抖音直播间 - 抖音直播",
+  "reward": "+1钻",
+  "type": "钻石红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 16:05:58",
+  "title": "小小 （张语珊）的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 16:06:00",
+  "title": "小小 （张语珊）的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 16:08:28",
+  "title": "小小 （张语珊）的抖音直播间 - 抖音直播",
+  "gift_type": "棒棒糖",
+  "gift_value": "9钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 16:08:29",
+  "title": "小小 （张语珊）的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 16:22:29",
+  "title": "用户2344697139783的抖音直播间",
+  "reward": "+3钻",
+  "type": "钻石红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 16:28:15",
+  "title": "朝暮暮u.的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 16:28:15",
+  "title": "朝暮暮u.的抖音直播间 - 抖音直播",
+  "gift_type": "撩一下",
+  "gift_value": "19钻",
+  "type": "礼物红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 16:42:42",
+  "title": "香蕉爱跳舞（晚上9点20分左右开播）的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 16:42:52",
+  "title": "香蕉爱跳舞（晚上9点20分左右开播）的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 16:51:57",
+  "title": "副官的抖音直播间 - 抖音直播",
+  "gift_type": "小皇冠",
+  "gift_value": "10钻",
+  "type": "礼物红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:15:15",
+  "title": "大郎不喝药的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:15:17",
+  "title": "大郎不喝药的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:16:32",
+  "title": "大郎不喝药的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:16:33",
+  "title": "大郎不喝药的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:21:16",
+  "title": "慢慢来了的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:21:16",
+  "title": "慢慢来了的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:36:54",
+  "title": "想得美的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:36:54",
+  "title": "想得美的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:37:05",
+  "title": "想得美的抖音直播间",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:37:05",
+  "title": "想得美的抖音直播间",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:44:56",
+  "title": "大洋芋（流浪汉）4月3日百里杜鹃舞台的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:44:57",
+  "title": "大洋芋（流浪汉）4月3日百里杜鹃舞台的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:47:07",
+  "title": "大洋芋（流浪汉）4月3日百里杜鹃舞台的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:47:26",
+  "title": "大洋芋（流浪汉）4月3日百里杜鹃舞台的抖音直播间",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:56:11",
+  "title": "若溪的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 17:56:11",
+  "title": "若溪的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:03:24",
+  "title": "晚星的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:03:34",
+  "title": "晚星的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:05:23",
+  "title": "天中利哥的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:05:26",
+  "title": "天中利哥的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:08:01",
+  "title": "天中利哥的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:08:01",
+  "title": "天中利哥的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:15:53",
+  "title": "静静🎙️的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:15:54",
+  "title": "静静🎙️的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:29:20",
+  "title": "@昭昭🎤经典老歌的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:29:20",
+  "title": "@昭昭🎤经典老歌的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:29:44",
+  "title": "@昭昭🎤经典老歌的抖音直播间",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:29:44",
+  "title": "@昭昭🎤经典老歌的抖音直播间",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:30:38",
+  "title": "金铲铲阿录的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:30:39",
+  "title": "金铲铲阿录的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:34:41",
+  "title": "马大帅（和平精英）的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:34:43",
+  "title": "马大帅（和平精英）的抖音直播间 - 抖音直播",
+  "reward": "-1钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:38:30",
+  "title": "马大帅（和平精英）的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "special_type": "人气红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:41:53",
+  "title": "狗王的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:41:53",
+  "title": "狗王的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 18:48:45",
+  "title": "逍遥的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 19:55:30",
+  "title": "芳熙✨¹¹²⁰的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 20:26:46",
+  "title": "王者荣耀澜🔥烟（国服澜 赵云）的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 20:41:14",
+  "title": "仙遇-阿泽的抖音直播间 - 抖音直播",
+  "reward": "+4钻",
+  "type": "钻石红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 20:52:37",
+  "title": "糯米团团的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 21:01:51",
+  "title": "王者阿栋的抖音直播间 - 抖音直播",
+  "reward": "+10钻",
+  "type": "钻石红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 21:22:34",
+  "title": "小肉的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "多开账号1"
+ },
+ {
+  "timestamp": "2026-04-06 21:57:28",
+  "title": "小六子的抖音直播间 - 抖音直播",
+  "gift_type": "大啤酒",
+  "gift_value": "2钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 22:37:58",
+  "title": "ou的抖音直播间 - 抖音直播",
+  "gift_type": "小心心",
+  "gift_value": "1钻",
+  "type": "礼物红包",
+  "account": "账号1"
+ },
+ {
+  "timestamp": "2026-04-06 22:47:26",
+  "title": "土豆🥔（无畏契约）的抖音直播间 - 抖音直播",
+  "reward": "+6钻",
+  "type": "钻石红包",
+  "account": "账号1"
+ }
+]
